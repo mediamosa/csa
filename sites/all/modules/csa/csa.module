@@ -1,0 +1,672 @@
+<?php
+// $Id$
+
+/**
+ * MediaMosa is a Full Featured, Webservice Oriented Media Management and
+ * Distribution platform (http://www.vpcore.nl)
+ *
+ * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * (http://www.kennisnet.nl)
+ *
+ * MediaMosa is based on the open source Drupal platform and
+ * was originally developed by Madcap BV (http://www.madcap.nl)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, you can find it at:
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ */
+
+/**
+ * @file
+ * This module contains all shared functions of the CSA application
+ */
+
+define('CSA_VERSION', '1.0.7.155');
+
+define('CSA_SETTINGS_SUBMIT_TEXT_ADD_REQUIRED_METADATA', 'Add required metadata >>');
+define('CSA_SETTINGS_SUBMIT_TEXT_REMOVE_REQUIRED_METADATA', '<< Remove required metadata');
+define('CSA_SETTINGS_SUBMIT_TEXT_ADD_MULTIPLE_METADATA', 'Add multiple metadata >>');
+define('CSA_SETTINGS_SUBMIT_TEXT_REMOVE_MULTIPLE_METADATA', '<< Remove multiple metadata');
+
+// Modes during browse.
+define('CSA_MODE_QUERY', '0');
+define('CSA_MODE_SELECTION', '1');
+
+// Include our .inc.
+require_once('csa.inc');
+require_once('csa.app.inc');
+require_once('csa.asset.inc');
+require_once('csa.asset.job.inc');
+require_once('csa.asset.mediafile.inc');
+require_once('csa.asset.metadata.inc');
+require_once('csa.collection.inc');
+require_once('csa.log.inc');
+require_once('csa.mediamosa.errorcodes.inc');
+require_once('csa.misc.inc');
+require_once('csa.theme.inc');
+require_once('csa.still.inc');
+require_once('csa.user.inc');
+
+/**
+ * Wildcard as used in search queries.
+ */
+define('CSA_SEARCH_WILDCARD', '*');
+
+// Basic right that allows you to do stuff as CSA user.
+define('CSA_PERMISSION_USER', 'csa user');
+// Allows you to edit the CSA global settings.
+define('CSA_PERMISSION_SETTINGS', 'administer csa settings');
+// Allows you to alter the specific user settings.
+define('CSA_PERMISSION_USER_SETTINGS', 'administer csa user settings');
+
+// Types of access:
+define('CSA_ACCESS_TYPE_DOMAIN', 'Domain: ');
+define('CSA_ACCESS_TYPE_REALM', 'Realm: ');
+define('CSA_ACCESS_TYPE_APP', 'Application: ');
+
+/**
+ * Implementation of hook_perm().
+ */
+function csa_perm() {
+  return array(CSA_PERMISSION_USER, CSA_PERMISSION_SETTINGS, CSA_PERMISSION_USER_SETTINGS);
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function csa_help($path, $arg) {
+  switch ($path) {
+    // Upload step 1.
+    case 'csa/settings':
+      return '<p>' . t("The CSA settings are global settings that apply to all CSA users. If your metadata listings are empty, then your MediaMosa connector is not been setup.") . '</p>';
+
+    // Upload step 1.
+    case 'csa/mediafile/%/access':
+      return '<p>' . t("Change the access of the mediafile and press 'save' to submit your changes to the mediafile. Entering no access rules will remove existing rules.") . '</p>';
+
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function csa_menu() {
+  $items = array();
+
+  if (!variable_get('csa_has_primary_block', FALSE)) {
+    $items['csa'] = array(
+      'title' => 'Content Supplier Alication',
+      'page callback' => '_csa_home',
+      'access arguments' => array(CSA_PERMISSION_USER),
+      'weight' => -10,
+    );
+    $items['csa/home'] = array(
+      'title' => 'Home',
+      'page callback' => '_csa_home',
+      'weight' => -10,
+      'access arguments' => array(CSA_PERMISSION_USER),
+      'type' => _csa_has_primary_block(TRUE),
+    );
+  }
+
+  $items['csa/prefs'] = array(
+    'title' => 'Prefs',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_prefs_form'),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => _csa_has_primary_block(),
+    'weight' => 10,
+  );
+  $items['csa/settings'] = array(
+    'title' => 'CSA Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('csa_settings'),
+    'access arguments' => array(CSA_PERMISSION_SETTINGS),
+    'type' => _csa_has_primary_block(),
+    'weight' => 12,
+  );
+  // Delete mediafile.
+  $items['csa/mediafile/%/delete'] = array(
+    'title' => t('Delete Mediafile'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_asset_mediafile_delete_form', 2),
+    'access arguments' => array(CSA_PERMISSION_DELETE_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  // Edit rights mediafile.
+  $items['csa/mediafile/%/access'] = array(
+    'title' => t('Access rules Mediafile'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_asset_mediafile_access_form', 2),
+    'access arguments' => array(CSA_PERMISSION_ACCESS_RULES_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+
+  // User page for editing the MediaMosa connection.
+  $items['user/%user/csa_edit_connection'] = array(
+    'title' => t('MediaMosa connection'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_edit_connection', 1),
+    'access arguments' => array(CSA_PERMISSION_USER_SETTINGS),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+  );
+
+  // User page for editing their settings.
+  $items['user/%user/csa_edit_prefs'] = array(
+    'title' => t('CSA user prefs'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_user_prefs_form', 1),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+  );
+
+  return $items;
+}
+
+/**
+ * CSA Settings.
+ */
+function csa_settings() {
+  $form = array();
+
+  if (!_csa_mediamosa_status()) {
+    drupal_set_message(t('Your MediaMosa login does not work, !message', array('!message' => l('edit your connection', 'admin/mediamosa/config/connector'))), 'error');
+  }
+
+  // Call the collectsettings hooks to generate the settings form.
+  foreach (module_implements('csa_collectsettings') as $module) {
+    $form = module_invoke($module, 'csa_collectsettings', $form);
+  }
+
+  if (!empty($_POST) && form_get_errors()) {
+    drupal_set_message(t('The settings have not been saved because of the errors.'), 'error');
+  }
+
+  return $form;
+}
+
+/**
+ * Implementation of hook_validate().
+ */
+function csa_settings_validate($node, &$form) {
+}
+
+/**
+ * Implementation of hook_submit().
+ */
+function csa_settings_submit($form, &$form_state) {
+}
+
+/**
+ * Implementation of hook_csa_collectsettings().
+ */
+function csa_csa_collectsettings($form) {
+
+  // Get available transcodings.
+  $metadata = _csa_asset_metadata_list_misc();
+  $metadata['metadata_options_multiple'] = $metadata['metadata_options']; // one for multiple too.
+
+  // Get global default settings for required metadata.
+  $csa_settings_required_metadata = _csa_settings_required_metadata_get();
+
+  // Unselect whats already selected.
+  foreach ($csa_settings_required_metadata as $prop_id => $name) {
+    // Unset this metadata entry, so it can not be selected.
+    foreach (array_keys($metadata['metadata_options']) as $metadata_group) {
+      unset($metadata['metadata_options'][$metadata_group][$prop_id]);
+    }
+  }
+
+  $form['metadata_required'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Required metadata selection'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#description' => t("This selection of metadata fields will always be required to be entered and prevents publication of assets that miss these metadata entries."),
+  );
+
+  $form['metadata_required']['fieldset_1'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Available metadata'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#prefix' => '<div class="csa-prefs-input">',
+    '#suffix' => '</div>',
+  );
+  $form['metadata_required']['fieldset_1']['metadata_required'] = array(
+    '#type' => 'select',
+    '#options' => $metadata['metadata_options'],
+    '#size' => 8,
+    '#multiple' => TRUE,
+    '#attributes' => array('class' => 'csa-select-prefs'),
+  );
+  $form['metadata_required']['fieldset_1']['metadata_required_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t(CSA_SETTINGS_SUBMIT_TEXT_ADD_REQUIRED_METADATA),
+  );
+
+  $form['metadata_required']['fieldset_2'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Selected metadata for required'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#prefix' => '<div class="csa-prefs-output">',
+    '#suffix' => '</div>',
+  );
+  $form['metadata_required']['fieldset_2']['selected_metadata_required'] = array(
+    '#type' => 'select',
+    '#options' => $csa_settings_required_metadata,
+    '#size' => 8,
+    '#multiple' => TRUE,
+    '#attributes' => array('class' => 'csa-select-prefs'),
+  );
+  $form['metadata_required']['fieldset_2']['selected_metadata_required_remove'] = array(
+    '#type' => 'submit',
+    '#value' => t(CSA_SETTINGS_SUBMIT_TEXT_REMOVE_REQUIRED_METADATA),
+  );
+
+  $form['#validate'][] = '_csa_settings_required_metadata_form_validate';
+  $form['#submit'][] = '_csa_settings_required_metadata_form_submit';
+
+  // Get global default settings for multiple metadata.
+  $csa_settings_multiple_metadata = _csa_settings_multiple_metadata_get();
+
+  // Unselect whats already selected.
+  foreach ($csa_settings_multiple_metadata as $prop_id => $name) {
+    // Unset this metadata entry, so it can not be selected.
+    foreach (array_keys($metadata['metadata_options_multiple']) as $metadata_group) {
+      unset($metadata['metadata_options_multiple'][$metadata_group][$prop_id]);
+    }
+  }
+
+  $form['metadata_multiple'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Allow multiple metadata selection'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#description' => t("Select the metadata fields that are allowed to have more than one entry per asset. F.e. to enter multiple authors on an asset."),
+  );
+
+  $form['metadata_multiple']['fieldset_1'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Available metadata'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#prefix' => '<div class="csa-prefs-input">',
+    '#suffix' => '</div>',
+  );
+  $form['metadata_multiple']['fieldset_1']['metadata_multiple'] = array(
+    '#type' => 'select',
+    '#options' => $metadata['metadata_options_multiple'],
+    '#size' => 8,
+    '#multiple' => TRUE,
+    '#attributes' => array('class' => 'csa-select-prefs'),
+  );
+  $form['metadata_multiple']['fieldset_1']['metadata_multiple_submit'] = array(
+    '#type' => 'submit',
+    '#value' => t(CSA_SETTINGS_SUBMIT_TEXT_ADD_MULTIPLE_METADATA),
+  );
+
+  $form['metadata_multiple']['fieldset_2'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Selected metadata allowed to be multiple'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#prefix' => '<div class="csa-prefs-output">',
+    '#suffix' => '</div>',
+  );
+  $form['metadata_multiple']['fieldset_2']['selected_metadata_multiple'] = array(
+    '#type' => 'select',
+    '#options' => $csa_settings_multiple_metadata,
+    '#size' => 8,
+    '#multiple' => TRUE,
+    '#attributes' => array('class' => 'csa-select-prefs'),
+  );
+  $form['metadata_multiple']['fieldset_2']['selected_metadata_multiple_remove'] = array(
+    '#type' => 'submit',
+    '#value' => t(CSA_SETTINGS_SUBMIT_TEXT_REMOVE_MULTIPLE_METADATA),
+  );
+
+  $form['#validate'][] = '_csa_settings_multiple_metadata_form_validate';
+  $form['#submit'][] = '_csa_settings_multiple_metadata_form_submit';
+
+  return $form;
+}
+
+/**
+ * Validate function for required metadata form.
+ */
+function _csa_settings_required_metadata_form_validate($form, $form_state) {
+  // Get the values;
+  $values = $form_state['values'];
+
+  switch ($values['op']) {
+    case t(CSA_SETTINGS_SUBMIT_TEXT_ADD_REQUIRED_METADATA):
+      break;
+
+    case t(CSA_SETTINGS_SUBMIT_TEXT_REMOVE_REQUIRED_METADATA):
+      break;
+  }
+}
+
+/**
+ * Submit function for required metadata form.
+ */
+function _csa_settings_required_metadata_form_submit($form, &$form_state) {
+  // Get the values;
+  $values = $form_state['values'];
+
+  // Get available transcodings.
+  $metadata = _csa_asset_metadata_list_misc();
+
+  // So we know to save.
+  $save_settings = FALSE;
+
+  switch ($values['op']) {
+    case t(CSA_SETTINGS_SUBMIT_TEXT_ADD_REQUIRED_METADATA):
+      $csa_settings_required_metadata = _csa_settings_required_metadata_get();
+
+      // Add it.
+      if (!empty($values['metadata_required'])) {
+        foreach ($values['metadata_required'] as $prop_id) {
+          if (isset($metadata['metadata_propid_to_title'][$prop_id])) {
+            $csa_settings_required_metadata[$prop_id] = $metadata['metadata_propid_to_title'][$prop_id];
+
+            // Show we added it.
+            drupal_set_message(t('The required metadata !metadata has been added.', array('!metadata' => $metadata['metadata_propid_to_title'][$prop_id])));
+            $save_settings = TRUE;
+          }
+        }
+      }
+      break;
+
+    case t(CSA_SETTINGS_SUBMIT_TEXT_REMOVE_REQUIRED_METADATA):
+      $csa_settings_required_metadata = _csa_settings_required_metadata_get();
+
+      if (!empty($values['selected_metadata_required'])) {
+        foreach ($values['selected_metadata_required'] as $prop_id) {
+          unset($csa_settings_required_metadata[$prop_id]);
+
+          // Show we added it.
+          drupal_set_message(t('The required metadata !metadata has been removed.', array('!metadata' => $metadata['metadata_propid_to_title'][$prop_id])));
+          $save_settings = TRUE;
+        }
+      }
+      break;
+  }
+
+  // Save it.
+  if ($save_settings) {
+    _csa_settings_required_metadata_set($csa_settings_required_metadata);
+  }
+}
+
+/**
+ * Validate function for multiple metadata form.
+ */
+function _csa_settings_multiple_metadata_form_validate($form, $form_state) {
+  // Get the values;
+  $values = $form_state['values'];
+
+  switch ($values['op']) {
+    case t(CSA_SETTINGS_SUBMIT_TEXT_ADD_MULTIPLE_METADATA):
+      break;
+
+    case t(CSA_SETTINGS_SUBMIT_TEXT_REMOVE_MULTIPLE_METADATA):
+      break;
+  }
+}
+
+/**
+ * Submit function for multiple metadata form.
+ */
+function _csa_settings_multiple_metadata_form_submit($form, &$form_state) {
+  // Get the values;
+  $values = $form_state['values'];
+
+  // Get available transcodings.
+  $metadata = _csa_asset_metadata_list_misc();
+
+  // So we know to save.
+  $save_settings = FALSE;
+
+  switch ($values['op']) {
+    case t(CSA_SETTINGS_SUBMIT_TEXT_ADD_MULTIPLE_METADATA):
+      $csa_settings_multiple_metadata = _csa_settings_multiple_metadata_get();
+
+      // Add it.
+      if (!empty($values['metadata_multiple'])) {
+        foreach ($values['metadata_multiple'] as $prop_id) {
+          if (isset($metadata['metadata_propid_to_title'][$prop_id])) {
+            $csa_settings_multiple_metadata[$prop_id] = $metadata['metadata_propid_to_title'][$prop_id];
+
+            // Show we added it.
+            drupal_set_message(t('The multiple metadata !metadata has been added.', array('!metadata' => $metadata['metadata_propid_to_title'][$prop_id])));
+            $save_settings = TRUE;
+          }
+        }
+      }
+      break;
+
+    case t(CSA_SETTINGS_SUBMIT_TEXT_REMOVE_MULTIPLE_METADATA):
+      $csa_settings_multiple_metadata = _csa_settings_multiple_metadata_get();
+
+      if (!empty($values['selected_metadata_multiple'])) {
+        foreach ($values['selected_metadata_multiple'] as $prop_id) {
+          unset($csa_settings_multiple_metadata[$prop_id]);
+
+          // Show we added it.
+          drupal_set_message(t('The multiple metadata !metadata has been removed.', array('!metadata' => $metadata['metadata_propid_to_title'][$prop_id])));
+          $save_settings = TRUE;
+        }
+      }
+      break;
+  }
+
+  // Save it.
+  if ($save_settings) {
+    _csa_settings_multiple_metadata_set($csa_settings_multiple_metadata);
+  }
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function csa_user($op, &$edit, &$account, $category = NULL) {
+  global $user;
+
+  if ($op == 'logout' || $op == 'after_update') {
+    // So we renew when we login.
+    _csa_mediamosa_status(TRUE);
+  }
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function csa_block($op = 'list', $delta = 0, $edit = array()) {
+  global $user;
+
+  if ($op == 'list') {
+    return array(
+      'csa-version' => array(
+        'info' => t('CSA version'),
+      ),
+      'csa-status-bar' => array(
+        'info' => t('CSA status bar'), 'weight' => -100,
+      ),
+      'csa-mediamosa-connector' => array(
+        'info' => t('CSA Mediamosa connector login info (debug only)'),
+      ),
+      'csa-previous-next-top' => array(
+        'info' => t('Show the previous and next links when browsing assets, collections and other objects. Content top version.'),
+      ),
+      'csa-previous-next-bottom' => array(
+        'info' => t('Show the previous and next links when browsing assets, collections and other objects. Content bottom version.'),
+      ),
+      );
+  }
+  elseif ($op == 'view') {
+    $block = array();
+
+    if ($delta == 'csa-version') {
+
+      // Version Block CSA.
+
+      list($major, $minor, $release, $build) = preg_split("/[.: ]+/", CSA_VERSION, 5);
+
+      $block['subject'] = NULL;
+      $block['content'] = t('<b>Content Supplier Application</b> version !MAJOR.!MINOR.!RELEASE Build !BUILD', array('!MAJOR' => $major, '!MINOR' => $minor, '!RELEASE' => $release, '!BUILD' => $build));
+    }
+    elseif ($delta == 'csa-status-bar') {
+
+      // Status bar.
+      $user_name = $user->name;
+      $uid = $user->uid;
+      $user_logo = theme('user_picture', (object)$user);
+
+      // Get quota.
+      $user_quota = _csa_user_get_quota();
+      $user_quota = $user_quota['text'];
+
+      $block['subject'] = NULL;
+      $block['content'] = theme(
+        'csa_statusbar',
+        t('Welcome <a href="/user/!user_id"><b>@name</b></a>!logoff',
+          array(
+            '@name' => $user_name,
+            '!user_id' => rawurlencode($uid),
+            '!logoff' => ($uid == 0 ? '' : '&nbsp;<small>(' . l(t('Log out'), 'logout') . ')</small>')
+          )
+        ),
+        $user_logo,
+        $user_quota);
+    }
+    elseif ($delta == 'csa-mediamosa-connector') {
+
+      // Debug info for MediaMosa connector.
+
+      // Do one simple version call.
+      $result = _csa_mediamosa_request('version');
+
+      $block['subject'] .= t('CSA MediaMosa connector - ') . ($result ? t('Connection is ok') : t('Connection error'));
+      $block['content'] .= t('<b>Parameters:</b>');
+      $block['content'] .= '<br />';
+      $block['content'] .= t('User: @user, Password: @password, URL: @url', array('@user' => _csa_get_user_value_connection($user, 'app_name'), '@password' => str_repeat('*', drupal_strlen(_csa_get_user_value_connection($user, 'shared_key'))), '@url' => _csa_get_user_value_connection($user, 'mediamosa_url')));
+    }
+    elseif (($delta == 'csa-previous-next-top' || $delta == 'csa-previous-next-bottom') && arg(0) == 'csa') {
+      // Empty.
+      $browse_previous_next = array();
+
+      // Call the csa_browse_previous_next hooks to generate browse navigation.
+      foreach (module_implements('csa_browse_previous_next') as $module) {
+        $browse_previous_next = module_invoke($module, 'csa_browse_previous_next', $browse_previous_next);
+      }
+
+      if (!empty($browse_previous_next)) {
+        $block['subject'] = NULL;
+        $block['content'] = '<div class="' . $delta . '" >' . implode('', $browse_previous_next) . '</div>';
+      }
+    }
+
+    return $block;
+  }
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function csa_init() {
+  // CSS.
+  drupal_add_css(drupal_get_path('module', 'csa') . '/csa.css', 'module');
+
+  // JS.
+  drupal_add_js(drupal_get_path('module', 'csa') . '/csa.js');
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function csa_theme() {
+  return array(
+    'csa_statusbar' => array(
+      'template' => 'csa_statusbar',
+      'arguments' => array(
+        'user_name' => NULL,
+        'user_logo' => NULL,
+        'user_quota' => NULL,
+      ),
+    ),
+
+    'csa_table' => array(
+      'options' => array(),
+    ),
+
+    'csa_asset_link' => array(
+      'asset_id' => NULL,
+      'title' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_collection_link' => array(
+      'coll_id' => NULL,
+      'title' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_asset_metadata' => array(
+      'asset' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_asset_mediafiles' => array(
+      'asset' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_asset_mediafile' => array(
+      'asset' => NULL,
+      'mediafile' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_asset_stills' => array(
+      'asset' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_asset_still' => array(
+      'asset' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_asset_jobs' => array(
+      'asset' => NULL,
+      'jobs' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_caption_links' => array(
+      'options' => array(),
+    ),
+
+    'csa_asset_mediafile_access' => array(
+      'asset' => NULL,
+      'mediafile' => NULL,
+      'offset' => -1,
+      'mode' => 0,
+      'options' => array(),
+    ),
+  );
+}

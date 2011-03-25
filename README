@@ -1,0 +1,40 @@
+
+The Content Supplier Application (CSA) is an Drupal 6 webapplication to upload, transcode, publish, maintain MediaMosa video conents and share them between different client applications.
+
+Installation 
+------------
+Install the csa as a regular drupal 6 installation (see http://drupal.org/), but use the csa profile from the installation process.
+
+Postinstall
+-----------
+After install or upgrade the Drupal, you have to patch the htaccess file.
+
+Also in the file /sites/default.settings.php (or settings.php) at the 
+end there is a url you need to change;
+
+if (!empty($_SERVER['HTTPS'])) {
+  ini_set('session.cookie_secure', 1);
+  $base_url = 'https://csa.local';
+}
+else {
+  $base_url = 'http://csa.local';
+}
+
+Change the csa.local into the URL you need for the server. You could remove the
+else { ... } in most cases.
+
+
+diff -r 073e6f7a4b65 -r 65beecf647d5 .htaccess
+--- a/.htaccess	Wed Jun 23 11:41:47 2010 +0200
++++ b/.htaccess	Wed Jun 23 18:02:42 2010 +0200
+@@ -106,6 +106,10 @@
+   # uncomment the following line:
+   # RewriteBase /
+ 
++  # HTTPS.
++  #RewriteCond %{SERVER_PORT} 80
++  #RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R,L]
++
+   # Rewrite URLs of the form 'x' to the form 'index.php?q=x'.
+   RewriteCond %{REQUEST_FILENAME} !-f
+   RewriteCond %{REQUEST_FILENAME} !-d

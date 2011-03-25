@@ -1,0 +1,136 @@
+/* $Id$ */
+
+/**
+ * @file mt-admin.css
+ * Admin section theming.
+ */
+
+/**
+ * Admin layout
+ */
+div.admin {
+  padding: 0;
+}
+
+div.admin .compact-link {
+  margin: 1em 0;
+}
+
+div.admin .left,
+div.admin .right {
+  margin: 0;
+  width: 50%;
+}
+
+div.admin-panel {
+  margin: 1em 0 3em 0;
+}
+
+.left div.admin-panel {
+  padding: 0 1em 0 0;
+}
+
+.right div.admin-panel {
+  padding: 0 0 0 1em;
+}
+
+div.admin-panel .body {
+  padding: 0;
+}
+
+div.admin-panel .description {
+  border-bottom: 1px #000000 solid;
+  margin: 1em 0;
+  padding: 0 0 1em 0;
+}
+
+dl.admin-list dt {
+  background: url('../images/i_bullet.gif') no-repeat 0 5px;
+  font-weight: bold;
+  list-style: none;
+  margin: 0.75em 1em 0 0;
+  padding: 0 0 0 1em;
+}
+
+dl.admin-list dd {
+  border-bottom: 1px #DDDDDD solid;
+  color: #5F5F5F;
+  font-size: 93%;
+  margin: 0.25em 0 0.75em;
+  padding: 0 0 0.75em 0;
+}
+
+/**
+ * Blocks
+ */
+body.admin-section .block-region {
+  clear: both;
+}
+
+/**
+ * Panels
+ */
+body.admin-section .dashboard-entry {
+  padding: 0;
+  margin: 1em 0;
+}
+
+/**
+ * Icons
+ */
+.admin-panel h3 {
+  line-height: 24px;
+  margin-bottom: 0.5em;
+  padding-left: 30px;
+}
+
+.admin-panel-content h3 {
+  background: url(../images/admin_icon_content.gif) no-repeat left center;
+}
+
+.admin-panel-generate h3 {
+  background: url(../images/admin_icon_generate.gif) no-repeat left center;
+}
+
+.admin-panel-user h3 {
+  background: url(../images/admin_icon_user.gif) no-repeat left center;
+}
+
+.admin-panel-reports h3 {
+  background: url(../images/admin_icon_reports.gif) no-repeat left center;
+}
+
+.admin-panel-build h3 {
+  background: url(../images/admin_icon_build.gif) no-repeat left center;
+}
+
+.admin-panel-og h3 {
+  background: url(../images/admin_icon_og.gif) no-repeat left center;
+}
+
+.admin-panel-settings h3 {
+  background: url(../images/admin_icon_settings.gif) no-repeat left center;
+}
+
+/**
+ * Region labels
+ */
+.block-region {
+  background-color: #FFFFFF;
+  border: 2px dotted #0263C8;
+  color: #0263C8;
+  font-size: 131%;
+  font-weight: bold;
+  margin: 1em 0;
+  padding: .3em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.block-region:after {
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  visibility: hidden;
+}

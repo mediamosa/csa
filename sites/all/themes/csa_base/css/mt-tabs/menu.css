@@ -1,0 +1,96 @@
+/* $Id$ */
+
+/**
+ * @file rounded.css
+ * Rendering of rounded tabs.
+ */
+
+/**
+ * Reset default styling of tabbed menu
+ */
+.tabbed-menu ul.menu,
+.tabbed-menu ul.menu li a,
+.tabbed-menu ul.menu li.active a,
+.tabbed-menu ul.menu li a:hover {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  font-size: 107%;
+  font-family: 'Molengo', arial, serif; 
+  color: #fff;
+}
+
+div.tabbed-menu .content {
+  border-bottom: 1px #DDD solid;
+  height: 2.5em;
+  line-height: 1.0;
+  position: relative;
+}
+
+/**
+ * Menu tabs
+ */
+.tabbed-menu ul.menu {
+  bottom: -1px;
+  display: block;
+  left: 1em;
+  position: absolute;
+  width:980px; /* fix problem with empty space right because of left: 1em; making parent wider*/
+}
+
+.tabbed-menu ul.menu ul {
+  display: none; /* no support for sub-items yet */
+}
+
+.tabbed-menu ul.menu li {
+  background: none;
+  display: inline;
+  float: left;
+  margin: 0 3px 0 0;
+  padding: 0;  
+}
+
+.tabbed-menu ul.menu li a,
+.tabbed-menu ul.menu li a.active,
+.tabbed-menu ul.menu li a:hover,
+.tabbed-menu ul.menu li.active a {
+  background: url('../../images/tab_rounded.png') no-repeat left 0px;
+  display: inline;
+  float: left;
+  padding: 0 0 0 1em;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+}
+
+.tabbed-menu ul.menu li a span {
+  background: url('../../images/tab_rounded.png') no-repeat right 0px;
+  cursor: pointer;
+  display: block !important;
+  display: inline-block; /* Firefox 2/IE 6 fix */
+  padding: 8px 1em 7px 0;
+}
+
+.tabbed-menu ul.menu li a:hover {
+  background-position: left -100px;
+}
+
+.tabbed-menu ul.menu li a:hover span {
+  background-position: right -100px;
+}
+
+.tabbed-menu ul.menu li a.active,
+.tabbed-menu ul.menu li a.active:hover,
+.tabbed-menu ul.menu li.active a,
+.tabbed-menu ul.menu li.active a:hover {
+  background-position: left -200px;
+  color: #000000;
+  font-weight: bold;
+}
+
+.tabbed-menu ul.menu li a.active span,
+.tabbed-menu ul.menu li.active a span {
+  background-position: right -200px;
+  padding-bottom: 8px;
+}

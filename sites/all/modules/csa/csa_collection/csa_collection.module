@@ -1,0 +1,205 @@
+<?php
+// $Id$
+
+/**
+ * MediaMosa is a Full Featured, Webservice Oriented Media Management and
+ * Distribution platform (http://www.vpcore.nl)
+ *
+ * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * (http://www.kennisnet.nl)
+ *
+ * MediaMosa is based on the open source Drupal platform and
+ * was originally developed by Madcap BV (http://www.madcap.nl)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, you can find it at:
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ */
+
+/**
+ * @file
+ * The collection create, edit and delete functions.
+ */
+require_once 'csa_collection.inc';
+require_once 'csa_collection.theme.inc';
+
+/**
+ * Implementation of hook_perm().
+ */
+function csa_collection_perm() {
+  return array();
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function csa_collection_menu() {
+  $items = array();
+
+  // List of collections.
+  $items['csa/collection'] = array(
+    'title' => 'Collections',
+    'page callback' => '_csa_collection_list',
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => _csa_has_primary_block(),
+    'weight' => 5,
+  );
+
+  // List of collections.
+  $items['csa/collection/list'] = array(
+    'title' => 'List',
+    'page callback' => '_csa_collection_list',
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  // Add collections.
+  $items['csa/collection/add'] = array(
+    'title' => 'Add',
+    'page callback' => '_csa_collection_add',
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+  );
+
+  // Viewing collection.
+  $items['csa/collection/%/%'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_collection_detail',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(CSA_PERMISSION_VIEW_COLLECTION),
+    'weight' => 0,
+  );
+
+  // Viewing collection.
+  $items['csa/collection/%/%/view'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_collection_detail',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(CSA_PERMISSION_VIEW_COLLECTION),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+  // Search within collection.
+  $items['csa/collection/%/%/search'] = array(
+    'title' => t('Search'),
+    'page callback' => '_csa_collection_select_for_search',
+    'page arguments' => array(2),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+  );
+
+  // Editing collection.
+  $items['csa/collection/%/%/edit'] = array(
+    'title' => t('Edit'),
+    'page callback' => '_csa_collection_edit',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(CSA_PERMISSION_EDIT_COLLECTION),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
+  );
+
+  // Publishing collection.
+  $items['csa/collection/%/%/publication'] = array(
+    'title' => t('Publication'),
+    'page callback' => '_csa_collection_publication',
+    'page arguments' => array(2, 3),
+    'access arguments' => array(CSA_PERMISSION_EDIT_COLLECTION),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 6,
+  );
+
+  // Deleting collection.
+  $items['csa/collection/%/%/delete'] = array(
+    'title' => t('Delete'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_collection_delete_form', 2, 3),
+    'access arguments' => array(CSA_PERMISSION_DELETE_COLLECTION),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function csa_collection_theme() {
+  return array(
+    'csa_collection_list' => array(
+      'arguments' => array('form' => NULL),
+    ),
+    'csa_collection' => array (
+      'collection' => NULL,
+      'options' => array(),
+    ),
+    'csa_collection_assets' => array (
+      'collection' => NULL,
+      'assets' => NULL,
+      'options' => array(),
+    ),
+    'csa_collection_previous_next_collection' => array (
+      'path' => NULL,
+      'offset' => -1,
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_csa_browse_previous_next()
+ *
+ * We match urls;
+ * csa/collection/!coll_id/!offset
+ * csa/collection/!coll_id/!offset/edit
+ * csa/collection/!coll_id/!offset/delete
+ */
+function csa_collection_csa_browse_previous_next($browse_previous_next) {
+
+  $args = arg();
+
+  if ($args[0] == 'csa' && $args[1] == 'collection' && count($args) >= 4) {
+
+    // csa/collection/!coll_id/!offset
+    if (count($args) == 4) {
+      $browse_previous_next['collection'] = theme('csa_collection_previous_next_collection', 'csa/collection/!coll_id/!offset', $args[3]);
+    } // csa/collection/!coll_id/!offset/edit
+    elseif (count($args) == 5 && $args[4] == 'edit') {
+      $browse_previous_next['collection'] = theme('csa_collection_previous_next_collection', 'csa/collection/!coll_id/!offset/edit', $args[3]);
+    } // csa/collection/!coll_id/!offset/publication
+    elseif (count($args) == 5 && $args[4] == 'publication') {
+      $browse_previous_next['collection'] = theme('csa_collection_previous_next_collection', 'csa/collection/!coll_id/!offset/publication', $args[3]);
+    }
+    elseif (count($args) == 5 && $args[4] == 'delete') {
+      $browse_previous_next['collection'] = theme('csa_collection_previous_next_collection', 'csa/collection/!coll_id/!offset/delete', $args[3]);
+    }
+  }
+
+  return $browse_previous_next;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function csa_form__csa_collection_delete_form_alter(&$form, &$form_state) {
+
+  $form['actions']['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+  );
+}

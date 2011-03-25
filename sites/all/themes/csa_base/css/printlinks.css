@@ -1,0 +1,53 @@
+/* $Id$ */
+
+/**
+ * @file print-email-pdf.css
+ * Styling of print and email links.
+ */
+
+.print-link {
+  display: block;
+  text-align: right;
+}
+
+div#block-print-0 span {
+  display: block;
+}
+
+.print_html, .print_mail, .print_pdf {
+  margin-left: 1em;
+}
+
+.print-syslink {
+  margin-right: 1em;
+}
+
+img.print-icon {
+  vertical-align: middle;
+}
+
+img.print-icon-margin {
+  padding-right: 4px;
+}
+
+label.printmail-label {
+  width: 175px;
+  float: left;
+}
+
+ul.links li.print_html,
+ul.links li.book_printer {
+  background: transparent url(../images/print_icon.gif) no-repeat left center;
+  padding-left: 1.6em;
+}
+
+ul.links li.print_mail,
+ul.links li.book_mail {
+  background: transparent url(../images/mail_icon.gif) no-repeat left center;
+  padding-left: 1.6em;
+}
+
+ul.links li.print_pdf {
+  background: transparent url(../images/pdf_icon.gif) no-repeat left center;
+  padding-left: 1.6em;
+}

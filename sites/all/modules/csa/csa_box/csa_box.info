@@ -1,0 +1,8 @@
+; $Id $
+name = "Inbox and outbox"
+description = "The in- and outbox is used for administration of the published and unpublished assets."
+package = CSA
+version = "6.x-0.1"
+core = 6.x
+dependencies[] = csa
+dependencies[] = mediamosa_connector

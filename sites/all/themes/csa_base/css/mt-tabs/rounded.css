@@ -1,0 +1,125 @@
+/* $Id$ */
+
+/**
+ * @file rounded.css
+ * Rendering of rounded tabs.
+ */
+
+/**
+ * Reset default styling of tabs
+ */
+ul.primary,
+ul.primary li a,
+ul.primary li.active a,
+ul.primary li a:hover,
+ul.secondary,
+ul.secondary li,
+ul.secondary a,
+ul.secondary a.active {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+div.tabs {
+  border-bottom: 1px #DDD solid;
+  height: 2.5em;
+  margin-bottom: 1.5em;
+  position: relative;
+}
+
+div.secondary {
+  border-bottom: none;
+  height: auto;
+  margin-top: -1.5em;
+  position: relative;
+}
+
+/**
+ * Primary tabs
+ */
+ul.primary {
+  bottom: -1px;
+  left: 1em;
+  position: absolute;
+}
+
+ul.primary li {
+  float: left;
+  margin: 0 3px 0 0;
+}
+
+ul.primary li a,
+ul.primary li a.active,
+ul.primary li a:hover,
+ul.primary li.active a {
+  background: url('../../images/tab_rounded.png') no-repeat left 0px;
+  display: inline;
+  float: left;
+  padding: 0 0 0 1em;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+}
+
+ul.primary li a span {
+  background: url('../../images/tab_rounded.png') no-repeat right 0px;
+  cursor: pointer;
+  display: block !important;
+  display: inline-block; /* Firefox 2/IE 6 fix */
+  padding: 6px 1em 5px 0;
+}
+
+ul.primary li a:hover {
+  background-position: left -100px;
+}
+
+ul.primary li a:hover span {
+  background-position: right -100px;
+}
+
+ul.primary li a.active,
+ul.primary li a.active:hover,
+ul.primary li.active a,
+ul.primary li.active a:hover {
+  background-position: left -200px;
+  color: #000000;
+  font-weight: bold;
+}
+
+ul.primary li a.active span,
+ul.primary li.active a span {
+  background-position: right -200px;
+  padding-bottom: 6px;
+}
+
+/**
+ * Secondary tabs
+ */
+ul.secondary {
+  border-bottom: .1em #DDD solid;
+  clear: both;
+  margin: 0 0 1em 0;
+  padding: .85em 0 .85em 1em;
+}
+
+ul.secondary li {
+  border-right: .1em #DDD solid;
+  margin: 0;
+  padding: 0 1.2em 0 1em;
+}
+
+ul.secondary li a,
+ul.secondary li a.active,
+ul.secondary li a:hover {
+  padding: .15em 0;
+}
+
+ul.secondary li a.active,
+ul.secondary li a.active:hover {
+  border-bottom: .25em #DDD solid;
+  color: #000000;
+  font-weight: bold;
+}

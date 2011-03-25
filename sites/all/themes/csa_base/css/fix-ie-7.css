@@ -1,0 +1,15 @@
+/* $Id$ */
+
+/**
+ * @file fix-ie-6.css
+ * Items from style.css necessary because IE doesn't get these things right.
+ */
+
+pre, code {
+  font-size: 100%;
+}
+
+fieldset legend,
+fieldset.collapsed legend {
+  display: inline;
+}

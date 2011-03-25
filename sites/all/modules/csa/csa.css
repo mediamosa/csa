@@ -1,0 +1,92 @@
+/* $Id: $ */
+
+.block-csa {
+  text-align: center;
+}
+
+div.csa-status-content {
+  float: left; /* LTR */
+  text-align: left;
+  padding-left: 1em;
+  font-size: 93%;
+}
+div.csa-status-image {
+  float: right; /* LTR */
+  margin-bottom:-28px;
+}
+div.csa-user,
+div.csa-quota {
+  margin-top: 1em;
+}
+div.csa-status-image img {
+  border: 5px solid #fff;
+}
+
+div.csa-prefs-output {
+  float: left; /* LTR */
+  width: 380px;
+  vertical-align:top;
+}
+div.csa-prefs-input {
+  float: left; /* LTR */
+  width: 380px;
+  padding-right:10px;
+}
+
+select.csa-select-prefs {
+	width: 340px;
+}
+select.csa-select-apps {
+	width: 340px;
+}
+
+div.csa-submit {
+  float: left; /* LTR */
+}
+/* Dummy */
+.csa-asset-checkbox {
+}
+
+.csa-caption-links {
+	font-size: 0.9em;
+	font-weight: bold;
+}
+
+div.csa-metadata-field-add {
+  width: 400px;
+}
+select.csa-metadata-field-add {
+	width: 380px;
+}
+
+#edit-profile-ids {
+	width: 380px;
+}
+
+TD.csa-asset-metadata-groupname {
+  font-size: 1.2em;	
+  font-weight: bold;
+}
+TD.csa-asset-metadata-name {
+	font-weight: bold;
+	width: 200px;
+}
+
+TD.csa-asset-metadata-value {
+}
+
+TD.csa-asset-mf-metadata-name {
+	font-weight: bold;
+	width: 200px;
+}
+
+TD.csa-asset-mf-metadata-value {
+}
+
+.csa-link-previous {
+	float: left;
+}
+
+.csa-link-next {
+  text-align: right;
+}

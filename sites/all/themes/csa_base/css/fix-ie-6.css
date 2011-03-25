@@ -1,0 +1,15 @@
+/* $Id$ */
+
+/**
+ * @file fix-ie-6.css
+ * Items from style.css necessary because IE doesn't get these things right.
+ */
+
+table {
+  width: 99%; /* in IE6 the table moves below the left-float if the width is 100%; */
+}
+
+fieldset legend,
+fieldset.collapsed legend {
+  display: inline;
+}

@@ -1,0 +1,141 @@
+/* $Id$ */
+
+/**
+ * @file mt-views.css
+ * Styling of a view.
+ */
+ 
+.view-header,
+.view-footer {
+  margin: 1em 0;
+}
+
+/**
+ * Display of fields
+ */
+.views-field-created {
+  font-size: 85%;
+}
+
+th.views-field-created,
+td.views-field-created {
+  font-size: 100%;
+}
+
+.views-field-view-node a {
+  background: url(../images/i_arrow.gif) no-repeat 3px 3px;
+  padding: 0 0 0 1.6em;
+}
+
+.views-field-title a {
+  font-weight: bold;
+}
+
+/**
+ * Display of lists
+ */
+.view-content .item-list ul li.views-row {
+  background: none;
+  border-bottom: 1px solid #ccc;
+  margin: 1em 0;
+  padding: 0 0 1em 0;
+}
+
+.views-row .node {
+  margin: 1em 0;
+}
+
+li.views-row .node {
+  margin: 1em 0 -1em 0;
+}
+
+.views-row .content {
+  margin: 0 0 1em 0;
+}
+
+/**
+ * Grid view
+ */
+div.views-view-grid {
+  float: left;
+  width: 100%;
+}
+
+div.views-view-grid .row,
+div.views-view-grid .row {
+  float: left;
+}
+
+div.views-view-grid-horizontal .row {
+  clear: both;
+  width: 100%;
+}
+
+div.views-view-grid-vertical .columns-2 {
+  width: 50%;
+}
+
+div.views-view-grid-vertical .columns-3 {
+  width: 33%;
+}
+
+div.views-view-grid-vertical .columns-4 {
+  width: 25%;
+}
+
+div.views-view-grid .col {
+  float: left;
+}
+
+div.views-view-grid-horizontal .columns-2 .col { 
+  width: 50%;
+}
+
+div.views-view-grid-horizontal .columns-3 .col {
+  width: 33%;
+}
+
+div.views-view-grid-horizontal .columns-4 .col {
+  width: 25%;
+}
+
+div.views-view-grid .inner {
+  padding: 0.5em;
+}
+
+/**
+ * Skinr view options
+ */
+.view-first-item-right div.left-side,
+.view-first-item-right div.right-side,
+.view-first-item-left div.left-side,
+.view-first-item-left div.right-side {
+  display: block;
+}
+.view-first-item-left div.left-side {
+  clear: left;
+  float: left;
+  margin-right: 10px;
+}
+.view-first-item-right div.right-side,
+.view-first-item-left div.right-side {
+  display: table-cell;
+}
+.view-first-item-left .views-row {
+  clear: left;
+}
+
+.view-first-item-right div.left-side {
+  float: right;
+  clear: right;
+  margin-left: 10px;
+}
+
+.view-first-item-left .left-side span.field-content,
+.view-first-item-right .left-side span.field-content {
+  vertical-align: middle;
+}
+
+.view-first-item-right .views-row {
+  clear: right;
+}

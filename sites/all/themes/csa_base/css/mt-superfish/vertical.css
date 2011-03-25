@@ -1,0 +1,57 @@
+/* $Id$ */
+
+/**
+ * @file vertical.css
+ * A modified version of the superfish vertical style.
+ */
+
+/**
+ * Menu item width
+ */
+.sf-vertical ul.menu, .sf-vertical ul.menu li {
+	width:	100%;
+}
+
+/**
+ * Sub-menu item widths
+ */
+.sf-vertical ul.menu li ul, .sf-vertical ul.menu li li {
+  width: 200px;
+}
+
+.sf-vertical ul.menu li:hover ul,
+.sf-vertical ul.menu li.sfHover ul {
+	left:	100%; /* match ul width */
+	top:	0;
+}
+
+.sf-vertical ul.menu li li:hover ul,
+.sf-vertical ul.menu li li.sfHover ul {
+  left: 200px; /* match ul width */
+  top: 0;
+}
+
+.sf-vertical ul.menu li li li:hover ul,
+.sf-vertical ul.menu li li li.sfHover ul {
+  left: 200px; /* match ul width */
+  top: 0;
+}
+
+.sf-vertical ul.menu li a {
+  border-right: none;
+  border-bottom: 1px #8E8E8E solid;
+}
+
+/**
+ * Alter arrow directions
+ */
+.sf-vertical ul.menu .sf-sub-indicator { background-position: -10px 0; } /* IE6 gets solid image only */
+.sf-vertical ul.menu a > .sf-sub-indicator { background-position: 0 0; } /* use translucent arrow for modern browsers*/
+
+.sf-vertical ul.menu a:focus > .sf-sub-indicator,
+.sf-vertical ul.menu a:hover > .sf-sub-indicator,
+.sf-vertical ul.menu a:active > .sf-sub-indicator,
+.sf-vertical ul.menu li:hover > a > .sf-sub-indicator,
+.sf-vertical ul.menu li.sfHover > a > .sf-sub-indicator {
+	background-position: -10px 0; /* arrow hovers for modern browsers*/
+}

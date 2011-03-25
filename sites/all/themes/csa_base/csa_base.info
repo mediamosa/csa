@@ -1,0 +1,106 @@
+; $Id$
+
+; INFO
+; -----------------------------
+name        = csa_base
+description = Madcap base theme. Good basic styling with minimal graphics. Build your own theme on top of this.
+version     = "6.x-2.0.3"
+core        = 6.x
+engine      = phptemplate
+php         = DRUPAL_MINIMUM_PHP
+
+; BASE STYLESHEET -- don't edit this! and always load first
+; -----------------------------
+stylesheets[all][]    = css/mt-base.css
+
+; SPICE UP THE DEFAULTS
+; -----------------------------
+stylesheets[all][]    = css/mt-admin.css
+stylesheets[all][]    = css/mt-views.css
+stylesheets[print][]  = css/print.css
+stylesheets[all][]    = css/printlinks.css
+
+; csa_base SPECIFIC STYLING
+; -----------------------------
+stylesheets[all][]    = css/mt-superfish/basic.css
+stylesheets[all][]    = css/mt-superfish/vertical.css
+stylesheets[all][]    = css/mt-tabs/rounded.css
+stylesheets[all][]    = css/mt-tabs/menu.css
+
+; THEME LAYOUT -- overrides all styling from above
+; ----------------------------
+stylesheets[all][]    = style.css
+
+; REGIONS
+; -----------------------------
+regions[sidebar_1]      = Sidebar 1
+regions[sidebar_2]      = Sidebar 2
+regions[content]        = Content
+regions[content_top]    = Content top
+regions[content_bottom] = Content bottom
+regions[header]         = Header
+regions[footer]         = Footer
+
+; FEATURES
+; -----------------------------
+
+features[] = name
+features[] = slogan
+features[] = favicon
+features[] = primary_links
+features[] = secondary_links
+features[] = search
+
+; Currently unused and unstyled:
+; features[] = node_user_picture
+; features[] = comment_user_picture
+
+; SCRIPTS
+; -----------------------------
+scripts[] = script/jquery.once.js
+scripts[] = script/tableheader.js
+scripts[] = script/superfish.modified.js
+scripts[] = script/script.js
+
+; SKINR
+; -----------------------------
+; View layouts
+skinr[mt-views-layout][title]        = Layout options
+skinr[mt-views-layout][type]         = select
+skinr[mt-views-layout][description]  = Choose a layout option
+skinr[mt-views-layout][features][]   = views_view
+  skinr[mt-views-layout][options][1][label] = First item left
+  skinr[mt-views-layout][options][1][class] = view-first-item-left
+  skinr[mt-views-layout][options][2][label] = First item right
+  skinr[mt-views-layout][options][2][class] = view-first-item-right
+
+; General styles
+skinr[mt-general-style][title] = General styles
+skinr[mt-general-style][type] = checkboxes
+skinr[mt-general-style][description] = These are some generally useful options for blocks
+skinr[mt-general-style][features][] = block
+skinr[mt-general-style][features][] = panels_pane
+  skinr[mt-general-style][options][1][label] = Text: large, bold callout style
+  skinr[mt-general-style][options][1][class] = callout
+  skinr[mt-general-style][options][2][label] = Text: make title a heading
+  skinr[mt-general-style][options][2][class] = heading
+  skinr[mt-general-style][options][3][label] = Links: bold all links
+  skinr[mt-general-style][options][3][class] = weighted-links
+  skinr[mt-general-style][options][4][label] = Padding: add 1em extra padding inside block
+  skinr[mt-general-style][options][4][class] = padding
+  skinr[mt-general-style][options][5][label] = Border: add 1px border and 1em padding
+  skinr[mt-general-style][options][5][class] = border
+  skinr[mt-general-style][options][6][label] = Forms: behave like inline containers
+  skinr[mt-general-style][options][6][class] = form-container-inline
+
+; Menu styles
+skinr[mt-menu-style][title] = Menu styles
+skinr[mt-menu-style][type] = radios
+skinr[mt-menu-style][description] = Set menu items to Expanded for Superfish menu's
+skinr[mt-menu-style][features][] = block
+  skinr[mt-menu-style][options][1][label] = Superfish: horizontal menu with dropdowns
+  skinr[mt-menu-style][options][1][class] = superfish sf-horizontal
+  skinr[mt-menu-style][options][2][label] = Superfish: vertical menu (for sidebar blocks)
+  skinr[mt-menu-style][options][2][class] = superfish sf-vertical
+  skinr[mt-menu-style][options][3][label] = Tabs: render menu as tabs (nested lists are not supported yet)
+  skinr[mt-menu-style][options][3][class] = tabbed-menu

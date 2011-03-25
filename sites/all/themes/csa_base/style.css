@@ -1,0 +1,329 @@
+/* $Id$ */
+
+/**
+* @file style.css
+* Declares the basics of the layout.
+*/
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background:url("images/b_content.jpg") repeat-x scroll left 150px 
+}
+/**
+ * Global classes
+ */
+.section {
+  position: relative;
+  margin: 0 auto;
+  width: 1000px;
+  clear: both;
+}
+
+.mission-inner, .footer-message {
+  margin: 1em 0;
+}
+
+.site-header {
+  clear: both;
+  float: left;
+  width: 100%;
+}
+.site-header .content {
+  margin: 0;
+}
+.site-header h2 {
+  margin:0.6em 0 0;
+}
+.navigation-inner {
+  margin: 0; /* override .content */
+}
+
+/**
+ * Skinr styles
+ */
+.callout .block-inner {
+  font-size: 131%;
+  font-weight: bold;
+}
+
+.heading h2.title {
+  background: #CFECFC url(images/b_thead.gif) repeat-x left top;
+  color: #000;
+  font-weight: bold;
+  padding: .4em;
+  text-align: center;
+}
+
+.padding, .border {
+  width: 100%; /* trigger hasLayout in IE6/7, not needed for regular blocks! */
+}
+
+.padding .block-inner, .border .block-inner {
+  padding: 1em;
+}
+
+.padding h2.title, .border h2.title {
+  margin-top: 0; /* remove top margin from block titles when padding is applied */
+}
+
+.padding .content, .border .content {
+  margin-bottom: -1em; /* cancel bottom margin from last child element, needs hasLayout on parent for IE6/7 */
+}
+
+.border .block-inner {
+  border: 1px #DDDDDD solid;
+}
+
+.weighted-links a {
+  font-weight: bold;
+}
+
+/**
+ * Header
+ */
+#header {
+/*  background: #330000 url(images/b_head.jpg) center top;*/
+  background: #330000;
+  border-bottom: 1px solid #DDDDDD;
+  position: relative;
+  width: 100%;
+  z-index: 750; /* place header on top of most page elements, needed for superfish */
+
+}
+.header-inner {
+  height: 136px;
+  height: 132px;
+}
+#header .block-csa {
+  color: #FFC9C9;
+}
+#header .block-csa a {
+  color: #FFF;
+}
+#header #navigation-primary {
+  position: absolute;
+  bottom: -1px;
+  left: 0px;
+}
+#header .logo {
+  display: inline; /* fix hasLayout for IE6/7 */
+  float: left;
+  line-height: 0.1em;
+  margin: 1em .5em;
+}
+.header-inner {
+  border-top: 10px solid #056599;
+}
+/**
+ * Navigation
+ */
+#navigation-secondary .navigation-inner { /* display secondary links in top right corner */
+  margin: 1em 0;
+  font-size: 100%;
+  width: auto;
+  z-index: 4;
+}
+
+.navigation-inner .clear-both {
+  display: none;
+}
+
+.navigation-inner:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+#search {
+  clear: both;
+  display: inline; /* fix hasLayout in IE6 */
+  float: right;
+  margin: 3.5em 0.75em 0 0;
+  position: absolute;
+  right: 0;
+  top: 0; /* needed for IE6 only */
+}
+
+/**
+ * Primary links
+ */
+ul.primary-links {
+  line-height: 1;
+  margin: 0;
+  width: 100%;
+}
+
+ul.primary-links ul {
+  display: none; /* nested lists not supported yet! */
+}
+
+ul.primary-links li {
+  background-image: none;
+  float: left;
+  margin: 0;
+  padding: 0;
+}
+
+ul.primary-links li a {
+  border-right: 1px solid #8E8E8E;
+  display: block;
+  padding: 0.5em 1em;
+  text-decoration: none;
+}
+
+ul.primary-links li a:focus, ul.primary-links li a:hover, ul.primary-links li a:active {
+	outline: 0;
+}
+
+ul.primary-links li.last a {
+  border: none;
+}
+
+/**
+ * Secondary links
+ */
+ul.secondary-links {
+  line-height: 1;
+  margin: 0;
+}
+
+ul.secondary-links ul {
+  display: none; /* nested lists not supported yet! */
+}
+
+ul.secondary-links li {
+  background-image: none;
+  float: left;
+  margin: 0;
+  padding: 0;
+}
+
+ul.secondary-links li a {
+  border-right: 1px solid #8E8E8E;
+  display: block;
+  padding: 0.25em 0.75em;
+  text-decoration: none;
+}
+
+ul.secondary-links li.last a {
+  border: none;
+}
+
+/**
+ * Columns &
+ * Sidebars
+ */ 
+#columns {
+  display: inline-block;
+}
+
+#container > #columns {
+  display: block;
+}
+
+.sidebar {
+  float: left;
+  width: 170px;
+}
+
+#sidebar-1 { /* WARNING! altering the left margin of this element to percentage based may cause unexpected behavior in IE6 */
+  margin: 0 0 0 -992px; /* set the left margin to the negative opposite of the .section width  (or #columns if specified) */
+}
+
+#sidebar-2 {
+  margin: 0 0 0 -170px; /* set the right margin to the negative opposite of the .sidebar width (or #sidebar-2 if specified) */
+}
+
+#content {
+  float: left;
+  width: 100%;
+}
+
+#content .content-inner {
+  margin: 0 170px; /* margin-left and margin-right should be the width of the corresponding sidebars + allowed margin */
+  padding: 1em;
+}
+
+body.sidebar-1 #content .content-inner {
+  margin-right: 0;
+}
+
+body.sidebar-2 #content .content-inner {
+  margin-left: 0;
+}
+
+body.no-sidebars #content .content-inner {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/**
+ * Sidebar elements
+ */
+.sidebar .block {
+  margin: 2em 0em;
+}
+
+/**
+ * Content elements
+ */
+#mission {
+  background-color: #D3EFFC;
+  padding: 0.3em 1em;
+  margin: 1em 0;
+}
+
+#content-top .block,
+#content-bottom .block {
+  margin: 1em 0;
+}
+
+/**
+ * Footer sticky
+ */
+.wrapper {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0 auto -40px; /* the bottom margin is the negative value of the footer's height */
+}
+
+#footer, .push {
+  clear: both;
+  height: 40px; /* .push must be the same height as #footer */
+}
+
+#footer {
+  background-color: #e6e2e2;
+  overflow: hidden;
+  width: 100%;
+}
+
+.footer-message {
+  height: 100%;
+}
+h2 {
+  color: #9f0542;
+}
+
+h1.sitename, h2.page-title {
+float: left;
+  font-size:167%;
+  font-weight: normal;
+  margin: 0.7em 0 0.5em;
+  color: #056599;
+}
+h2.title {
+  margin-left: .5em;
+  color: #9f0542;
+  line-height: 131%;
+}
+
+div.csa-status-image img {
+  border-color: #b7cdd9;
+}

@@ -1,0 +1,85 @@
+/* $Id$ */
+
+/**
+ * @file solid.css
+ * Rendering of solid tabs.
+ */
+
+/**
+ * Reset default styling of tabs
+ */
+ul.primary,
+ul.primary li a,
+ul.primary li.active a,
+ul.primary li a:hover,
+ul.secondary,
+ul.secondary li,
+ul.secondary a,
+ul.secondary a.active {
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+/**
+ * Primary tabs
+ */
+ul.primary {
+  border-bottom: 1px #DDD solid;
+  padding: 1em 0; /* double top and bottom padding of ul.primary links */
+}
+
+ul.primary li {
+  margin: 0 .2em 0 0;
+}
+
+ul.primary li a,
+ul.primary li a.active,
+ul.primary li a:hover,
+ul.primary li.active a {
+  background: #FFFFFF;
+  padding: .5em 1em; /* half top and bottom padding of ul.primary list */
+}
+
+ul.primary li a:hover {
+  background: #DDDDDD;
+}
+
+ul.primary li a.active,
+ul.primary li a.active:hover,
+ul.primary li.active a,
+ul.primary li.active a:hover {
+  background: #D0D0D0;
+  color: #000000;
+  font-weight: bold;
+}
+
+/**
+ * Secondary tabs
+ *
+ * if you want garland style, copy ul.primary CSS and change into ul.secondary
+ */
+ul.secondary {
+  border-bottom: 1px #DDD solid;
+  padding: .85em 0;
+}
+
+ul.secondary li {
+  border-right: .1em #DDD solid;
+  margin: 0;
+  padding: 0 1.2em 0 1em;
+}
+
+ul.secondary li a,
+ul.secondary li a.active,
+ul.secondary li a:hover {
+  padding: .15em 0;
+}
+
+ul.secondary li a.active,
+ul.secondary li a.active:hover {
+  border-bottom: .25em #DDD solid;
+  color: #000000;
+  font-weight: bold;
+}

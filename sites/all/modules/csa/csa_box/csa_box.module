@@ -1,0 +1,491 @@
+<?php
+// $Id$
+
+/**
+ * MediaMosa is a Full Featured, Webservice Oriented Media Management and
+ * Distribution platform (http://www.vpcore.nl)
+ *
+ * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * (http://www.kennisnet.nl)
+ *
+ * MediaMosa is based on the open source Drupal platform and
+ * was originally developed by Madcap BV (http://www.madcap.nl)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, you can find it at:
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ */
+
+/**
+ * @file
+ * The publish / unpublish (outbox / inbox).
+ */
+require_once 'csa_box.inc';
+require_once 'csa_box.batch.inc';
+require_once 'csa_box.item.inc';
+require_once 'csa_box.theme.inc';
+
+// Max assets/mediafiles per page.
+define('CSA_INBOX_ASSETS_PER_PAGE', 50);
+
+define('CSA_BOX_ACTION_PUBLISH', 'Publish');
+define('CSA_BOX_ACTION_UNPUBLISH', 'Unpublish');
+define('CSA_BOX_ACTION_DELETE', 'Delete');
+define('CSA_BOX_ACTION_TRANSCODE', 'Transcode');
+define('CSA_BOX_ACTION_METADATA', 'Add metadata');
+define('CSA_BOX_ACTION_GENERATE_STILLS', 'Generate still');
+define('CSA_BOX_ACTION_ADD_TO_COLLECTION', 'Add to collection');
+define('CSA_BOX_ACTION_REMOVE_FROM_COLLECTION', 'Remove from collection');
+define('CSA_BOX_ACTION_BROWSE_SELECTION', 'Browse');
+define('CSA_BOX_ACTION_ACCESS_RULES', 'Access');
+
+// For now being CSA user grants you all actions.
+define('CSA_PERMISSION_VIEW_ASSET', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_VIEW_COLLECTION', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_EDIT_COLLECTION', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_PUBLISH_COLLECTION', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_UNPUBLISH_COLLECTION', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_DELETE_COLLECTION', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_PUBLISH_MEDIAFILE', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_UNPUBLISH_MEDIAFILE', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_DELETE_MEDIAFILE', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_TRANSCODE_MEDIAFILE', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_ADD_TO_COLLECTION', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_REMOVE_FROM_COLLECTION', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_GENERATE_STILLS', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_EDIT_METADATA_MEDIAFILE', CSA_PERMISSION_USER);
+define('CSA_PERMISSION_ACCESS_RULES_MEDIAFILE', CSA_PERMISSION_USER);
+
+/**
+ * @file
+ * The inbox contains all unpublished assets.
+ */
+
+/**
+ * Implementation of hook_perm().
+ */
+function csa_box_perm() {
+  return array();
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function csa_cron() {
+
+  // Clean up of our variables that we only are available for 72 hours.
+  $result = db_query("SELECT name, value FROM {variable} WHERE name LIKE 'mediamosa_completed_transcoding_url_%'");
+
+  $row = db_fetch_array($result);
+  while ($row) {
+    $value = unserialize($row['value']);
+
+    // If start is missing or when start + 72 hours is before current time, we
+    // remove the variable.
+    if (empty($value['start']) || ($value['start'] + (3600 * 72)) < microtime(TRUE)) {
+      variable_del($row['name']);
+    }
+
+    $row = db_fetch_array($result);
+  }
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function csa_box_help($path, $arg) {
+
+  $out = array();
+
+  switch ($path) {
+    case 'csa/unpublished':
+      $out[] = t('This page shows your unpublished assets. Your published asset can be found in the !published section. Select one or more assets and select an action to execute on the selected assets.', array('!published' => l('published', 'csa/published')));
+      break;
+
+    case 'csa/published':
+      $out[] = t('This page lists all your published assets. Select one or more assets and select an action to execute on the selected assets.');
+      break;
+
+    case 'csa/search':
+      $out[] = t('Use the search form to filter your selection of asset. Select one or more assets and select an action to execute on the selected assets.');
+      break;
+
+    case 'csa/box/metadata/%':
+      $out[] = t("Use the metadata form to enter metadata. Press the 'Save' button to start the batch. Entered metadata will replace the metadata on the assets in the batch. Any empty fields will be ignored. If you would enter 'title' with a value but keep 'description' empty, then metadata for 'title' be replaced and 'description' will stay unchanged.");
+      break;
+
+    case 'csa/box/addtocollection/%':
+      $out[] = t("Select the collection to which the assets will be added.");
+      break;
+
+    case 'csa/box/removefromcollection/%':
+      $out[] = t("Select the collection where your batch will remove the assets from.");
+      break;
+
+    case 'csa/box/generatestill/%':
+      $out[] = t("Select the still type and its options to generate stills.");
+      break;
+
+    case 'csa/box/access/%':
+      $out[] = t('Use the form below to build the access for the selected items, then start the batch to add the access rules on the selected assets.');
+      break;
+  }
+
+  // Text for selection.
+  switch ($path) {
+    case 'csa/unpublished':
+    case 'csa/published':
+    case 'csa/search':
+      $out[] = '<div id="csa_selected_text">' . _csa_box_item_get_selected_text(arg(1)) . '</div>';
+      break;
+  }
+
+  return empty($out) ? NULL : '<p>' . implode('</p><p>', $out) . '</p>';
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function csa_box_menu() {
+
+  $items['csa/box/selectitem/%/%'] = array(
+    'page callback' => '_csa_box_item_select',
+    'page arguments' => array(3, 4),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/unselectitem/%/%'] = array(
+    'page callback' => '_csa_box_item_unselect',
+    'page arguments' => array(3, 4),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/selectitemall/%'] = array(
+    'page callback' => '_csa_box_item_select_all',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/unselectitemall/%'] = array(
+    'page callback' => '_csa_box_item_unselect_all',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/clearselection/%'] = array(
+    'page callback' => '_csa_box_item_clearselection',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/clearselection/%/real'] = array(
+    'page callback' => '_csa_box_item_clearselection_real',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/allselection/%'] = array(
+    'page callback' => '_csa_box_item_allselection',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/allselection/%/real'] = array(
+    'page callback' => '_csa_box_item_allselection_real',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['csa/box/publish'] = array(
+    'page callback' => '_csa_box_publish',
+    'page arguments' => array(),
+    'access arguments' => array(CSA_PERMISSION_PUBLISH_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/unpublish'] = array(
+    'page callback' => '_csa_box_unpublish',
+    'page arguments' => array(),
+    'access arguments' => array(CSA_PERMISSION_UNPUBLISH_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/delete/confirm/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_box_delete_form', 4),
+    'access arguments' => array(CSA_PERMISSION_DELETE_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/delete/%'] = array(
+    'page callback' => '_csa_box_delete',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_DELETE_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/transcode/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_box_transcode_form', 3),
+    'access arguments' => array(CSA_PERMISSION_TRANSCODE_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/access/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_box_access_form', 3),
+    'access arguments' => array(CSA_PERMISSION_ACCESS_RULES_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/metadata/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_box_metadata_form', 3),
+    'access arguments' => array(CSA_PERMISSION_EDIT_METADATA_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/addtocollection/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_box_move_to_collection_form', 3),
+    'access arguments' => array(CSA_PERMISSION_ADD_TO_COLLECTION),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/removefromcollection/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_box_remove_from_collection_form', 3),
+    'access arguments' => array(CSA_PERMISSION_REMOVE_FROM_COLLECTION),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/box/generatestill/%'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_box_generatestill_form', 3),
+    'access arguments' => array(CSA_PERMISSION_GENERATE_STILLS),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['csa/unpublished'] = array(
+    'title' => 'Unpublished',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_inbox_form'),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => _csa_has_primary_block(),
+    'weight' => 1,
+  );
+  $items['csa/unpublished/list'] = array(
+    'title' => 'List',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_inbox_form'),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 1,
+  );
+
+  $items['csa/published'] = array(
+    'title' => 'Published',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_outbox_form'),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => _csa_has_primary_block(),
+    'weight' => 2,
+  );
+  $items['csa/published/list'] = array(
+    'title' => 'List',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_outbox_form'),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 2,
+  );
+
+  $items['csa/search'] = array(
+    'title' => 'Search',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_searchbox_form'),
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => _csa_has_primary_block(),
+    'weight' => 2,
+  );
+  $items['csa/search/list'] = array(
+    'title' => 'List',
+    'access arguments' => array(CSA_PERMISSION_USER),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_csa_searchbox_form'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 2,
+  );
+
+  // Viewing details asset.
+  $items['csa/unpublished/asset/%/%/%'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_box_asset_detail',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_VIEW_ASSET),
+  );
+  $items['csa/unpublished/asset/%/%/%/view'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_box_asset_detail',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_VIEW_ASSET),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  // Editing metadata asset (inbox).
+  $items['csa/unpublished/asset/%/%/%/edit'] = array(
+    'title' => t('Edit'),
+    'page callback' => '_csa_box_asset_metadata_edit',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_EDIT_METADATA_MEDIAFILE),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['csa/published/asset/%/%/%'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_box_asset_detail',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_VIEW_ASSET),
+  );
+  $items['csa/published/asset/%/%/%/view'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_box_asset_detail',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_VIEW_ASSET),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  // Editing metadata asset (outbox).
+  $items['csa/published/asset/%/%/%/edit'] = array(
+    'title' => t('Edit'),
+    'page callback' => '_csa_box_asset_metadata_edit',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_EDIT_METADATA_MEDIAFILE),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['csa/search/asset/%/%/%'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_box_asset_detail',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_VIEW_ASSET),
+  );
+  $items['csa/search/asset/%/%/%/view'] = array(
+    'title' => t('Details'),
+    'page callback' => '_csa_box_asset_detail',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_VIEW_ASSET),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  // Editing metadata asset (outbox).
+  $items['csa/search/asset/%/%/%/edit'] = array(
+    'title' => t('Edit'),
+    'page callback' => '_csa_box_asset_metadata_edit',
+    'page arguments' => array(3, 4, 5),
+    'access arguments' => array(CSA_PERMISSION_EDIT_METADATA_MEDIAFILE),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+
+  // Triggered by mediamosa to remove double mediafiles.
+  $items['csa/box/batch/transcode_completed'] = array(
+    'page callback' => '_csa_box_batch_transcode_completed_trigger',
+    'access callback' => 'user_is_anonymous', // anonymous only.
+    'type' => MENU_CALLBACK,
+  );
+
+  // Use for JS to return the text needed to show the selection.
+  $items['csa/box/get_selected_text/%'] = array(
+    'page callback' => '_csa_box_get_selected_text',
+    'access arguments' => array(CSA_PERMISSION_VIEW_ASSET),
+    'page arguments' => array(3),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function csa_form__csa_box_delete_form_alter(&$form, &$form_state) {
+
+  $form['actions']['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+  );
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function csa_form__csa_asset_mediafile_delete_form_alter(&$form, &$form_state) {
+
+  $form['actions']['cancel'] = array(
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
+  );
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function csa_box_theme() {
+  return array(
+    'csa_box_list' => array(
+      'arguments' => array('form' => NULL),
+    ),
+
+    'csa_box_link_asset_inbox' => array(
+      'asset_id' => NULL,
+      'title' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_box_link_asset_outbox' => array(
+      'asset_id' => NULL,
+      'title' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_box_link_asset_search' => array(
+      'asset_id' => NULL,
+      'title' => NULL,
+      'options' => array(),
+    ),
+
+    'csa_box_previous_next_asset' => array(
+      'path' => NULL,
+      'offset' => 0,
+      'mode' => NULL,
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_csa_browse_previous_next()
+ *
+ * We match urls;
+ * csa/unpublished/asset/!asset_id/!offset/!mode
+ * csa/unpublished/asset/!asset_id/!offset/!mode/edit
+ * csa/published/asset/!asset_id/!offset/!mode
+ * csa/published/asset/!asset_id/!offset/!mode/edit
+ * csa/search/asset/!asset_id/!offset/!mode
+ * csa/search/asset/!asset_id/!offset/!mode/edit
+ */
+function csa_box_csa_browse_previous_next($browse_previous_next) {
+  $args = arg();
+
+  if ($args[0] == 'csa' && in_array($args[1], array(CSA_BOX_TYPE_PUBLISHED, CSA_BOX_TYPE_UNPUBLISHED, CSA_BOX_TYPE_SEARCH)) && $args[2] == 'asset' && count($args) >= 6) {
+    // csa/unpublished/asset/!asset_id/!offset/!mode / csa/published/asset/!asset_id/!offset/!mode
+    if (count($args) == 6) {
+      $browse_previous_next['asset'] = theme('csa_box_previous_next_asset', 'csa/' . $args[1] . '/asset/!asset_id/!offset/!mode', $args[4], $args[5]);
+    } // csa/unpublished/asset/!asset_id/!offset/!mode/metadata/edit / csa/published/asset/!asset_id/!offset/!mode/metadata/edit
+    elseif (count($args) == 7 && $args[6] == 'edit') {
+      $browse_previous_next['asset'] = theme('csa_box_previous_next_asset', 'csa/' . $args[1] . '/asset/!asset_id/!offset/!mode/edit', $args[4], $args[5]);
+    }
+  }
+
+  return $browse_previous_next;
+}

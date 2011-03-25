@@ -1,0 +1,109 @@
+/* $Id$ */
+
+/**
+ * @file basic.css
+ * Rendering of basic tabs.
+ */
+
+/**
+ * Reset default styling of tabs
+ */
+ul.primary,
+ul.primary li a,
+ul.primary li.active a,
+ul.primary li a:hover,
+ul.secondary,
+ul.secondary li,
+ul.secondary a,
+ul.secondary a.active {
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+
+div.tabs {
+  height: 2.5em;
+  position: relative;
+  border-bottom: 1px #DDD solid;
+  margin-bottom: 1.5em;
+}
+
+div.secondary {
+  height: auto;
+  position: relative;
+  border-bottom: none;
+  margin-top: -1.5em;
+}
+
+/**
+ * Primary tabs
+ */
+ul.primary {
+  bottom: -1px;
+  left: 1em;
+  position: absolute;
+}
+
+ul.primary li {
+  float: left;
+  margin: 0 .3em 0 0;
+}
+
+ul.primary li a,
+ul.primary li a.active,
+ul.primary li a:hover,
+ul.primary li.active a {
+  background: #EEE;
+  border: 1px solid #DDD;
+  display: inline;
+  float: left;
+  padding: .3em 1em;
+  text-align: center;
+  text-decoration: none;
+  line-height: 1.2em;
+}
+
+ul.primary li a:hover {
+  background: #F5F5F5;
+}
+
+ul.primary li a.active,
+ul.primary li a.active:hover,
+ul.primary li.active a,
+ul.primary li.active a:hover {
+  background: #FFFFFF;
+  border-bottom-style: solid;
+  border-bottom-color: #FFFFFF;
+  color: #000000;
+  font-weight: bold;
+}
+
+/**
+ * Secondary tabs
+ */
+ul.secondary {
+  border-bottom: .1em #DDD solid;
+  clear: both;
+  margin: 0 0 1em 0;
+  padding: .85em 0 .85em 1em;
+}
+
+ul.secondary li {
+  border-right: .1em #DDD solid;
+  margin: 0;
+  padding: 0 1.2em 0 1em;
+}
+
+ul.secondary li a,
+ul.secondary li a.active,
+ul.secondary li a:hover {
+  padding: .15em 0;
+}
+
+ul.secondary li a.active,
+ul.secondary li a.active:hover {
+  border-bottom: .25em #DDD solid;
+  color: #000000;
+  font-weight: bold;
+}

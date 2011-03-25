@@ -1,0 +1,8 @@
+; $Id $
+name = "Upload"
+description = "The upload module allows you to upload mediafiles to MediaMosa."
+package = CSA
+version = "6.x-0.1"
+core = 6.x
+dependencies[] = csa
+dependencies[] = mediamosa_connector

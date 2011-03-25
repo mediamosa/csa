@@ -1,0 +1,75 @@
+/* $Id: $ */
+
+.csa-box-date {
+	width: 160px;
+	text-align: center;
+}
+
+.csa-box-size {
+	width: 80px;
+	text-align: right;
+}
+
+.csa-box-box {
+	width: 20px;
+	text-align: center;
+}
+
+.csa-box-filename {
+	text-align: left;
+}
+
+.csa-box-transcodings {
+	text-align: center;
+}
+
+table.csa-box-transcodings {
+  margin: 0 0;
+  width: 100%;
+}
+
+th.csa-asset-inbox {
+	width: 20px;
+}
+
+#edit-action1-wrapper, #edit-action2-wrapper {
+	float: left;
+}
+
+#edit-submit-wrapper-1 span.button {
+	margin: 1.3em 1em;
+}
+
+#edit-submit-wrapper-2 span.button {
+  margin: 0em 1em;
+}
+
+#edit-submit1 {
+	margin: 0px;
+}
+
+.csa-nobr {
+	white-space: nowrap;
+}
+
+select.csa-metadata-filter-add {
+	width: 380px;
+}
+
+.csa-metadata-filter-datetime-lft {
+	width: 140px;
+	float: left;
+	margin-bottom: 4px;
+}
+.csa-metadata-filter-datetime {
+	width: 140px;
+  margin-bottom: 4px;
+}
+.csa-metadata-filter-till {
+  margin-top: 8px;
+  margin-left: 8px;
+  margin-right: 8px;
+  margin-bottom: 4px;
+  float: left;
+}
+

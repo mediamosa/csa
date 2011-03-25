@@ -1,0 +1,182 @@
+/* $Id$ */
+
+/**
+ * @file print.css
+ * Optimized stylesheet for hardcopy printing.
+ *
+ * The main function of this CSS is to reduce
+ * the colours of the site to monochrome and
+ * optimize font sizes for printing output.
+ */
+
+/**
+ * Hide elements that aren't used in the printable layout
+ */
+#search-theme-form,
+#navigtation-secondary,
+#navigation-primary,
+#mission,
+.sidebar,
+.push,
+.messages,
+.region,
+div.tabs,
+div.links,
+span.edit_link,
+ul.menu {
+  display: none;
+  visibility: hidden;
+}
+
+/**
+ * Override global classes
+ */
+.section, .content-inner {
+  clear: none !important;
+  float: none !important;
+  margin: 0 !important;
+  position: relative !important;
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+/**
+ * Override defaults
+ */
+html, body, #header, #columns, #footer {
+  background-color: white !important;
+  color: black !important;
+  height: auto !important;
+}
+
+body {
+  font-family: "Times New Roman", serif !important;
+  font-size: 14px !important;
+  line-height: 131% !important;
+}
+
+body, div, dl, dt, dd, ul, ol,
+li, h1, h2, h3, h4, h5, h6, pre,
+code, form, fieldset, legend,
+textarea, p, blockquote, th, td {
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: 100%;
+  font-weight: bold;
+  margin: 1em 0;
+}
+
+h1 {
+  line-height: 131%;
+  font-size: 167%;
+  font-weight: normal;
+  margin: .5em 0;
+}
+
+h2 {
+  line-height: 116%;
+  font-size: 131%;
+  font-weight: bold;
+  margin: 1em 0 .6em;
+}
+
+h3 {
+  font-size: 116%;
+  font-weight: bold;
+}
+
+p, ul, ol, dl {
+  margin: 1em 0;
+}
+
+address, caption, cite, code,
+dfn, em, strong, th, var {
+  font-style: normal;
+  font-weight: normal;
+}
+
+b, strong {
+  font-weight: bold;
+}
+
+i, em {
+  font-style: italic;
+}
+
+hr {
+  border: 0px;
+  border-top: 1px solid black;
+  height: 1px
+}
+
+code {
+  font-family: "Arial", sans-serif;
+  font-size: 1em;
+}
+
+fieldset, img {
+  border: 0;
+}
+
+q:before, q:after {
+  content: '';
+}
+
+abbr, acronym {
+  border: 0;
+  font-variant: normal;
+}
+
+sup {
+  vertical-align: text-top;
+}
+
+sub {
+  vertical-align: text-bottom;
+}
+
+/**
+ * Override links
+ */
+a,
+a:active,
+a.active,
+a:hover,
+a:link,
+a:visited {
+  color: blue !important;
+  text-decoration: underline !important;
+}
+
+/**
+ * Override tables
+ */
+thead th {
+  background: black !important;
+  color: white !important;
+}
+
+/**
+ * Override lists
+ */
+dt {
+  font-weight: bold !important;
+  margin: .8em 0 0 !important;
+}
+
+dd {
+  margin: .5em 0 !important;
+  padding: 0 0 0 2em !important;
+}
+
+.content ul li,
+.item-list ul li {
+  background: none;
+  display: list-item;
+  list-style: inherit;
+  padding: 0;
+  margin: 0 0 0 1em;
+}

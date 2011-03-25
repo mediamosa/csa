@@ -1,0 +1,145 @@
+// $Id: 
+
+/**
+ * CSA is open source Software.
+ *
+ * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * (http://www.kennisnet.nl)
+ *
+ * CSA is developed for the open source Drupal platform (http://drupal.org).
+ * CSA has been developed by Madcap BV (http://www.madcap.nl).
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, you can find it at:
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ */
+
+CSA v1.0.7 (build 155)
+----------------------
+- Fixed redirect problems when using submap installs.
+- Fixed notices when saving metadata or other information.
+- Fixed typo in still creation form.
+
+CSA v1.0.6 (build 152)
+----------------------
+- Fixed minor typo in still batch creation (Start seconds instead of End 
+  seconds).
+
+CSA v1.0.5 (build 152)
+----------------------
+- Fixed: On search page when more than 50 items where found, results beyond
+  page 1 was missing (Ticket #78).
+- Fixed: When pressing enter inside the CQL box will now cause a new search
+  instead of creating a metadata item (Ticket #79).
+
+
+CSA v1.0.4 (build 151)
+----------------------
+- Fixed assert notice on publish and unpublished view of asset.
+
+
+CSA v1.0.3 (build 150)
+----------------------
+- Upgraded to Drupal 6.20.
+- Added search page.
+- Publication of mediafiles (or collections) will generate an error when no
+  publication rules are setup for application. Previously domain and realm 
+  setting still allowed publication, but nothing would happen.
+- Added search page.
+- Fixed: Still generation after upload did not work. Seems http_build_query has
+  '&amp;' as default in drupal 6 instead of '&'.
+- Made search tab on collection linked to search page with selected collection
+  as search parameter. 
+- Default metadata with that contains tag '=filename' can now be anywhere in the
+  default value; The tag '=filename' in default metadata will result into The 
+  filename is 'foo.mp4', when filename is foo.mp4. 
+- Fixed: Transcoding after upload was broken.
+
+CSA v1.0.2 (build 141)
+----------------------
+- Added missing 'pages' field to csa_default profile block creation. Causing 
+  notices on mariadb. 
+
+CSA v1.0.1 RC2 (build 140)
+--------------------------
+- Moved max limit value to variable in csa.asset.inc/_csa_asset_search().
+- Fixed minor assert problem in mediamosa_connector.
+- Fixed problems when EGA was set on old REST asset output for mediafiles.
+- Added setting for inherit ACL to user prefs (See ticket #74).
+- Fixed validation dates with metadata; entering invalid dates caused the batch
+  to fail. (See ticket #59)
+
+
+CSA v1.0.0 RC1 (build 134)
+--------------------------
+- Renamed URLs csa/inbox and csa/outbox to csa/unpublished and csa/published.
+  (See ticket #57)
+- Changed action dropdown list into buttons (See ticket #58).
+- Fixed: When adding/saving metadata and metadata resulted into an error, user
+  would lose enter data and be redirected to detail page (See ticket #59).
+- Added title to publish and unpublished listings (See ticket #60).
+- Added Sort to publish and unpublish pages (See ticket #61).
+- Altered help text for addtocollection page (See ticket #62).
+- Fixed progress bar text. (See ticket #67).
+- Added mediafile deletion (See ticket #69).
+- Fixed: Dates displayed where in the wrong timezone.
+- Extended the mediamosa connection on drupal user to include the owner/user_id
+  field for owner of the uploaded file and other user/owner related functions.
+  Default for this field is csa.admin. Set to other value, so uploaded files
+  have this user as owner of the asset.
+- Added replace access rules on batch (See ticket #64).
+- Added edit access rules for single asset (See ticket #65).
+- Extended the (un)published pages with clear selection option. This method
+  allows the user to run the batch on all unselected items. (See ticket #51).
+- Extended the asset detail page. (See ticket #68).
+- Added access rules to asset detail page (See ticket #68).
+
+CSA v0.6
+--------
+- Fixed bug in listings where the pager wasn't displayed.
+
+
+CSA v0.5
+--------
+- Flipped applications with domain/realm section in access rules section in 
+  prefs.
+- Fixed save problem on CSA mediamosa user connection.
+- 
+
+CSA v0.4
+--------
+- Fixed problem with checkbox all selection on (un)published page.
+
+CSA v0.3 Build 95
+-----------------
+- Added metadata form.
+- Extended prefs to match required and default metadata field selection.
+- fixed number of bugs from previous iteration.
+
+CSA v0.2 Build 88
+-----------------
+
+
+CSA v0.1 Build 78
+-----------------
+
+Ticket related (see cla.trac.madcap.nl)
+- Added rough version of the multi-file upload using the flash plugin swfupload.
+  (Ticket 
+- Converted most code of PA to CSA.
+- Convert small parts of WLE to CSA.
+- Added HTTPS (Ticket 8).
+
+
+Non-ticket related;
+
+
+

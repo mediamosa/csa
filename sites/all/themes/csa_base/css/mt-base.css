@@ -1,0 +1,928 @@
+/* $Id$ */
+
+/**
+ * @file mt-base.css
+ * Resets browser and Drupal's CSS to a minimum.
+ * 
+ * Helpful font sizes (based on YUI reset)
+ * --------------------------
+ * 77, 85, 93, 100, 108,
+ * 116, 123.1, 131, 138.5,
+ * 146.5, 153.9, 161.6, 167,
+ * 172, 182, 189, 197
+ */
+
+/**
+ * Defaults
+ */
+html {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+body, div, dl, dt, dd, ul, ol,
+li, h1, h2, h3, h4, h5, h6, pre,
+code, form, fieldset, legend,
+textarea, p, blockquote, th, td {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Droid Sans", "Lucida Grande", "Lucida Sans", "Arial", sans-serif;
+  font-size: 13px;
+  line-height: 142%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Molengo', arial, serif; 
+  font-size: 100%;
+  font-weight: bold;
+  margin: 1em 0;
+}
+
+h1 {
+  line-height: 131%;
+  font-size: 167%;
+  font-weight: normal;
+  margin: .5em 0;
+}
+
+h2 {
+  line-height: 131%;
+  font-size: 131%;
+  font-weight: bold;
+  margin: 1em 0 .6em;
+}
+
+h3 {
+  font-size: 116%;
+  font-weight: bold;
+}
+
+p, ul, ol, dl {
+  margin: 1em 0;
+}
+
+address, caption, cite, code,
+dfn, em, strong, th, var {
+  font-style: normal;
+  font-weight: normal;
+}
+
+b, strong {
+  font-weight: bold;
+}
+
+i, em {
+  font-style: italic;
+}
+
+hr {
+  border: 0px;
+  border-top: 1px solid #009BDE;
+  height: 1px
+}
+
+code {
+  font-family: "Arial", sans-serif;
+  font-size: 1em;
+}
+
+fieldset, img {
+  border: 0;
+}
+
+q:before, q:after {
+  content: '';
+}
+
+abbr, acronym {
+  border: 0;
+  font-variant: normal;
+}
+
+sup {
+  vertical-align: text-top;
+}
+
+sub {
+  vertical-align: text-bottom;
+}
+
+/**
+ * Links
+ */
+a, a:visited {
+  color: #056599;
+  margin: 0;
+  text-decoration: none;
+}
+
+a:active, a.active, a.active:visited,
+li a.active, li.active:visited {
+  color: #000000;
+}
+
+a:hover, li a.active:hover {
+  color: #0263FF;
+}
+
+#breadbrumb a {
+  color: #CD0033;
+}
+
+/**
+ * Tables
+ */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%; /* IE6 doesn't like this, do we need it? */
+}
+
+.admin-section table {
+  margin: 1em 0;
+}
+
+.admin-section table.sticky-header {
+  margin: 0;
+  z-index: 1000;
+}
+
+.admin-section table.views-table {
+  margin: 0;
+}
+
+tbody {
+  border-top: 0px; /* override system.css */
+}
+
+caption, th {
+  text-align: left;
+}
+
+caption {
+  font-size: 1.16em;
+  font-weight: bold;
+  margin: 1em 0;
+  padding: .4em;
+}
+
+th, td {
+  padding: .4em;
+}
+
+th {
+  background: #CFECFC url(../images/b_thead.gif) repeat-x left top;
+  color: #000;
+  font-weight: bold;
+  text-align: center;
+}
+
+thead th {
+  border-bottom: 1px solid #CCCCCC;
+}
+
+tr.odd, tr.even {
+  border-bottom: none;
+}
+
+tr.odd td {
+  background-color: #F8F8F8;
+  border-bottom: 1px #CCCCCC solid;
+}
+
+tr.even td {
+  background-color: #EFEFEF;
+  border-bottom: 1px #CCCCCC solid;
+}
+
+td.module, tr.even td.module,
+tr.odd td.module {
+  background-color: #AAAAAA;
+  color: #FFFFFF;
+  font-weight: bold; /* used for example in roles table */
+  text-align: center;
+}
+
+tr.draggable a {
+  vertical-align: middle;
+}
+
+/**
+ * Helper classes
+ */
+.clear-block:after {
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  visibility: hidden;
+}
+
+.clear-block {
+  display: block;
+}
+
+.clear-left {
+  clear: left;
+  height: 1px;
+  overflow: hidden;
+}
+
+.clear-right {
+  clear: right;
+  height: 1px;
+  overflow: hidden;
+}
+
+.clear-both {
+  clear: both;
+  height: 0.1px;
+  overflow: hidden;
+}
+
+.inline * {
+  display: inline;
+}
+
+.content {
+  margin: 1em 0;
+}
+
+.node .content {
+  max-width: 600px;
+}
+
+/**
+ * Lists used in content
+ */
+dt {
+  font-weight: bold;
+  margin: .8em 0 0;
+}
+
+dd {
+  margin: .5em 0;
+  padding: 0 0 0 2em;
+}
+
+.content ul,
+.content ol {
+  padding: 0 0 0 1em;
+}
+
+ul.menu,
+.block ul {
+  padding: 0;
+}
+
+ul li,
+ul.menu li,
+.item-list ul li {
+  display: block;
+  list-style-image: none;
+  list-style-position: outside;
+  list-style-type: none;
+  margin: .5em 1em 0 0;
+}
+
+ul.menu li,
+.content ul li,
+.item-list ul li {
+  background: url('../images/i_bullet.gif') no-repeat 0 5px;
+  padding: 0 0 0 1em;
+}
+
+.content ol li,
+.content ul ol li {
+  background-image: none;
+  list-style-type: decimal;
+  list-style-position: inside;
+  margin: .5em 1em 0 0;
+  padding: 0;
+}
+
+ul.menu li.leaf {
+  background-image: url('../images/i_bullet.gif');
+}
+
+ul.menu li.expanded {
+  background-image: url('../images/i_bullet_expanded.gif');
+}
+
+ul.menu li.collapsed {
+  background-image: url('../images/i_bullet_collapsed.gif');
+}
+
+.block ul {
+  margin: 1em 0;
+}
+
+.block ul ul {
+  margin: 0;
+}
+
+div.item-list {
+  margin: 1em 0;
+}
+
+.item-list ul,
+.item-list .item-list {
+  margin: 0;
+  padding: 0;
+}
+
+#user-login-form .item-list ul li {
+  background: transparent;
+}
+
+div.links {
+  clear: left;
+  margin: 1em 0;
+}
+
+ul.links {
+  padding: 0;
+}
+
+ul.links li {
+  display: inline;
+  background: transparent url(../images/i_arrow.gif) no-repeat 0 .1em;
+  line-height: 126%;
+  margin-right: .6em;
+  padding: 0 0 0 1.4em;
+}
+
+.sidebar .links ul.links,
+.sidebar .links ul.links li {
+  display: block;
+  margin-left: 0;
+}
+
+/**
+ * Node
+ */
+.node {
+  clear: none; /* override image_attach.css */
+  margin: 1em 0 0 0;
+}
+
+span.submitted {
+  display: block;
+  font-size: 87%;
+  margin: .5em 0;
+}
+
+.picture {
+  float: left;
+  margin: .5em .5em 0 0;
+}
+
+.node-unpublished {
+  background-color: #FFF1F1;
+  padding: 0.1em 1em;
+}
+
+.preview .node {
+  background-color: #FFFFDF;
+  padding: 0.1em 1em;
+}
+
+/**
+ * Taxonomy
+ */
+.vocab-name {
+  font-weight: bold;
+}
+
+ul.taxonomy .item-list,
+ul.taxonomy .item-list ul {
+  display: inline;
+}
+
+ul.taxonomy li {
+  background-image: none;
+  margin: 0;
+  padding: 0;
+}
+
+.terms ul.taxonomy li.vocab {
+  border-bottom: 0px;
+  margin: 0;
+  padding: 0;
+}
+
+div.taxonomy ul.links {
+  display: inline;
+}
+
+/**
+ * Search
+ */
+.searchbox {
+  padding: .5em;
+  position: absolute;
+  top: 1em;
+  right: 2em;
+}
+
+.search-form input {
+  margin: 1em 0 0;
+}
+
+/**
+ * Comments
+ */
+#comments {
+  margin: 1em 0;
+}
+
+div.comment {
+  border-bottom: 1px solid #DDDDDD;
+  padding: 0; /* let the margins of its children decide the top and bottom spacing */
+  margin: 1em 0;
+}
+
+.comment .new {
+  float: right;
+  margin: 0 1em;
+}
+
+/**
+ * Forms
+ */
+.content-inner form {
+  margin: 1em 0;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  margin: 1em 0;
+  padding: 0;
+  vertical-align: middle;
+}
+
+input.form-radio, input.form-checkbox {
+  background: transparent;
+  border: 0px; /* reset the border for checkboxes and radio-buttons */
+  vertical-align: baseline;
+}
+
+input.form-text, textarea {
+  background-color: #FFFFFF;
+  border: 1px #DDDDDD solid;
+  padding: .5em;
+}
+
+th input, td input, td select, td textarea, td .description {
+  margin: 0;
+}
+
+label {
+  font-weight: bold;
+}
+
+.form-item, fieldset {
+  padding: 0;
+}
+
+.form-item label {
+  margin: 1em 0;
+}
+
+.form-item input, .form-item select, .form-item textarea {
+  margin: 0;
+}
+
+.form-item, fieldset, html.js fieldset.collapsed {
+  margin: 1.3em 0;
+}
+
+.form-checkboxes, .form-radios {
+  margin: 0;
+}
+
+.form-checkboxes .form-item, .form-radios .form-item {
+  margin: .5em 0;
+}
+
+.field-prefix {
+  vertical-align: middle;
+}
+
+fieldset {
+  border: 1px solid #B7DCF5;
+  padding: .5em 1em 1em;
+}
+
+legend {
+  color: #000000;
+}
+
+fieldset legend {
+  display: block;
+  font-weight: bold;
+  padding: 0 .5em;
+}
+
+.resizable-textarea .grippie {
+  width: 100%;
+  padding: 0 .5em;
+}
+
+html.js fieldset.collapsed {
+  padding: .5em 0 0 1em;
+}
+
+html.js fieldset.collapsible .fieldset-wrapper {
+  padding-bottom: .3em;
+}
+
+html.js fieldset.collapsible legend a {
+  background-position: 0px 75%;
+  padding-left: 12px;
+}
+
+html.js fieldset.collapsed legend {
+  display: inline-block;
+}
+
+html.js fieldset.collapsed legend a {
+  background-position: 1px 50%;
+}
+
+.container-inline,
+.form-container-inline form {
+  margin: 0.5em 0;
+  line-height: 1.5em;
+}
+
+.container-inline *,
+.form-container-inline form * {
+  margin: 0;
+}
+
+.form-container-inline form div,
+.form-container-inline form div label,
+.form-container-inline form div input,
+.form-container-inline form div select,
+.form-container-inline form div ul,
+.form-container-inline form div li {
+  display: inline;
+  float: none !important;
+  vertical-align: middle;
+}
+
+.container-inline input,
+.form-container-inline form input {
+  margin: 0;
+}
+
+form.confirmation .container-inline a {
+  margin-left: 0.5em;
+}
+
+dl.multiselect {
+  margin: 0.5em 0;
+  float: left;
+}
+
+.multiselect .form-item label, .multiselect .form-item input,
+.multiselect .form-item select {
+  margin: 0;
+}
+
+dl.multiselect dd,
+dl.multiselect dt {
+  line-height: 19px;
+}
+
+dl.multiselect dd input {
+  vertical-align: middle;
+}
+
+dl.multiselect dd.a, dl.multiselect dd.a .form-item {
+  width: 9.5em;
+  white-space: nowrap;
+}
+
+/**
+ * Buttons &
+ * Views admin
+ */
+span.button {
+  background: url(../images/b_button.gif) no-repeat right top;
+  display: -moz-inline-stack;
+  display: inline-block;
+  margin: 1em .5em 1em 0;
+  padding: 0 5px 0 0;
+  vertical-align: middle;
+  width: auto;
+}
+
+span.button .button-inner {
+  background: url(../images/b_button.gif) no-repeat left top;
+  cursor: pointer;
+  float: left;
+}
+
+.container-inline span.button,
+.form-container-inline form span.button {
+  margin: 0.5em 0;
+}
+
+fieldset span.button {
+  margin-top: 0; /* use bottom margin of .form-item */
+}
+
+.views-tab {
+  overflow: hidden; /* trigger hasLayout in IE7 */
+}
+
+.views-tabset .views-display {
+  margin-left: 0;
+}
+
+#views-ui-list-views-form span.button,
+#views-ui-preview-form span.button {
+  margin-top: 3.25em;
+}
+
+#views-ajax-pad form {
+  margin-top: 0;
+}
+
+#views-ajax-pad .form-buttons .form-submit {
+  margin: 0 .5em 0 0;
+  padding: 0 5px 0 0;
+}
+
+#views-ajax-pad .views-override span.button, 
+#views-ajax-pad .views-expose span.button {
+  float: right;
+}
+
+span.button input {
+  background: none;
+  border: none;
+  color: #000;
+  cursor: pointer;
+  font-family: Arial;
+  font-size: 12px;
+  font-weight: bold;
+  height: 25px;
+  line-height: 21.99px;
+  overflow: visible;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+span.button input,
+#views-ajax-pad .form-buttons span.button input,
+#views-ajax-pad .views-override span.button input, 
+#views-ajax-pad .views-expose span.button input,
+form#views-ui-preview-form input#preview-submit,
+#edit-views-apply,
+#edit-views-reset {
+  margin: 0;
+  max-width: inherit;
+  padding: 1px 5px 3px 10px; /* needed for Firefox on Windows */
+}
+
+/**
+ * Animated Throbber in input fields
+ */
+html.js input.form-autocomplete {
+  background-image: url(../images/throbber.gif);
+  background-position: 100% 5px;
+  background-repeat: no-repeat;
+}
+
+html.js input.throbbing {
+  background-position: 100% -31px;
+}
+
+/**
+ * Views module-specific throbber
+ */
+html.js a.views-throbbing,
+html.js span.views-throbbing {
+  background-image: url(../images/views-throbber.gif);
+  background-position: right center;
+  background-repeat: no-repeat;
+  padding-right: 18px;
+}
+
+html.js .button a.views-throbbing,
+html.js .button span.views-throbbing {
+  background-position: right 5px;
+  padding-right: 14px;
+}
+
+/**
+ * Description
+ */
+.description {
+  font-size: 93%;
+  margin: 1em 0;
+}
+
+.form-item .description {
+  color: #5F5F5F;
+  padding: 0 0 0.5em 0;
+}
+
+/**
+ * Breadcrumb
+ */
+.breadcrumb {
+  margin: 1em 0;
+  padding: 0;
+}
+
+/**
+ * Messages
+ */
+div.messages, div.warning,
+div.help, div.status,
+div.error {
+  border-style: solid;
+  border-width: 1px;
+  margin: 1em 0;
+  overflow: hidden;
+}
+
+div.warning, div.status,
+div.error {
+  padding: 1em 1em 1em 3em;
+}
+
+div.messages,
+div.help {
+  padding: 0 1em 0 3em;
+}
+
+.messages-inner {
+  margin: 1em 0;
+}
+
+.messages p, .messages ul,
+.messages ol,.messages dl {
+  margin: 1em 0 1em 1em;
+}
+
+.messages p {
+  margin-left: 0;
+}
+
+div.status {
+  background: #F1FFCF url(../images/status-ok.png) no-repeat .5em .75em;
+  border-color: #4DA449;
+  color: #2A6827;
+}
+
+div.help {
+  background: #FFFFFF url(../images/status-info.png) no-repeat .5em .75em;
+  border-color: #B7DCF5;
+  border-width: 0;
+  color: #5F5F5F;
+  display: inline-block;
+  margin: .5em 0;
+}
+
+.content-inner > div.help {
+  display: block;
+}
+
+.help .more-help-link {
+  font-weight: bold;
+  margin: 1em 0;
+  text-align: left;
+}
+
+div.warning {
+  background: #FFFCDF url(../images/status-warning.png) no-repeat .5em .75em;
+  border-color: #EFE686;
+  color: #9F3800;
+}
+
+div.error {
+  background: #FFF3F6 url(../images/status-error.png) no-repeat .5em .75em;
+  border-color: #C00000;
+  color: #C00000;
+}
+
+tr.error {
+  background: #FFF3F6;
+  color: #C00000;
+}
+
+div.notice {
+  background: #FFF6BF;
+  border-color: #FFD324;
+  color: #514721;
+}
+
+div.ok, tr.ok, table tr.ok td,
+tr.error, table tr.error td,
+tr.warning, table tr.warning td,
+tr.info, table tr.info td {
+  color: #222;
+  padding: 1em .5em;
+}
+
+tr.ok th, tr.ok td {
+  background-color: #F1FFCF;
+}
+
+tr.error th, tr.error td {
+  background-color: #FFEFF3;
+}
+
+tr.warning th, tr.warning td {
+  background-color: #FFFCDF;
+}
+
+tr.info th, tr.info td {
+  background-color: #F7F8F8;
+}
+
+table.system-status-report tr.info th {
+  background-image: none;
+}
+
+.update tr.error .version-recommended {
+  background-color: #FFEFF4;
+}
+
+.update .info {
+  padding: 0 0 0 1em;
+}
+
+/**
+ * Poll
+ */
+.poll .text, .poll .title,
+.poll .total {
+  margin: 1em 0;
+}
+
+.poll .title {
+  font-style: italic;
+}
+
+.poll .text {
+  font-weight: bold;
+  margin-bottom: 0.25em;
+}
+
+.poll .bar {
+  background-color: transparent;
+  border: 1px #DDDDDD solid;
+  height: 1.5em;
+  margin: 0 0 -1em 0;
+  padding: 1px 3px 1px 1px;
+}
+
+.poll .bar .foreground {
+  background: #CFECFC url(../images/b_thead.gif) repeat-x left top;
+  border-right: 2px #DDDDDD solid;
+  float: none;
+  height: 1.5em;
+  position: relative;
+  z-index: 0;
+}
+
+.poll .percent {
+  margin: -1.7em 0.5em 0 0;
+  line-height: 1.5em;
+  position: relative;
+  z-index: 5;
+}
+
+/**
+ * Book outline
+ */
+#book-outline {
+  min-width: 0;
+}
+
+/**
+ * Autocomplete
+ */
+#autocomplete {
+  border-color: #DDDDDD;
+}
+
+/**
+ * Vertical tabs
+ */
+div.vertical-tabs-panes {
+  float: right;
+  width: 100%;
+}

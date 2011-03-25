@@ -1,0 +1,565 @@
+<?php
+// $Id$
+
+/**
+ * MediaMosa is a Full Featured, Webservice Oriented Media Management and
+ * Distribution platform (http://www.vpcore.nl)
+ *
+ * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * (http://www.kennisnet.nl)
+ *
+ * MediaMosa is based on the open source Drupal platform and
+ * was originally developed by Madcap BV (http://www.madcap.nl)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, you can find it at:
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ */
+
+require_once 'csa_upload.inc';
+
+/**
+ * @file
+ * Allows multiple uploads.
+ */
+
+// Allows you to upload files.
+define('CSA_PERMISSION_UPLOAD_MEDIAFILE', 'csa upload mediafile');
+
+/**
+ * Implementation of hook_perm().
+ */
+function csa_upload_perm() {
+  return array(CSA_PERMISSION_UPLOAD_MEDIAFILE);
+}
+
+/**
+ * Implementation of hook_help().
+ */
+function csa_upload_help($path, $arg) {
+  switch ($path) {
+    // Upload step 1.
+    case 'csa/upload':
+      return '<p>' . t("You can upload multiple files using this page. Press on the icon to select files and place them into the upload queue. You can start the queue by pressing on the 'Upload mediafiles' button. During upload you can add more files to the queue.") . '</p>';
+  }
+}
+
+/**
+ * Implementation of hook_theme() registry.
+ */
+function csa_upload_theme() {
+  return array(
+    'csa_upload_swf_upload_form' => array(
+      'template' => 'csa_upload-form',
+      'arguments' => array(
+        'modulepath' => NULL,
+        'uploadpath' => NULL,
+        'maxfilesize' => NULL,
+        'fileextensions' => NULL,
+        'sessionid' => NULL,
+        'uploadlimit' => NULL,
+        'csa_upload_id' => NULL,
+        'debug' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function csa_upload_menu() {
+
+  $items['csa/upload'] = array(
+    'title' => 'Upload',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('csa_upload_form'),
+    'access arguments' => array(CSA_PERMISSION_UPLOAD_MEDIAFILE),
+    'access callback' => '_csa_access_only_for_csa_user',
+    'type' => _csa_has_primary_block(),
+    'weight' => 0,
+  );
+  $items['csa/upload/url/%'] = array(
+    'page callback' => '_csa_upload_get_upload_url',
+    'page arguments' => array(3),
+    'access arguments' => array(CSA_PERMISSION_UPLOAD_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+  $items['csa/upload/updatequota'] = array(
+    'page callback' => '_csa_upload_update_quota',
+    'access arguments' => array(CSA_PERMISSION_UPLOAD_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+
+/*
+  $items['csa/upload/%'] = array(
+    'title' => 'Add a mediafile',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('csa_upload_add_mediafile'),
+    'access arguments' => array(CSA_PERMISSION_UPLOAD_MEDIAFILE),
+  );
+
+  $items['csa/upload/success'] = array(
+    'page callback' => 'csa_upload_success',
+    'page arguments' => array(2),
+    'access arguments' => array(CSA_PERMISSION_UPLOAD_MEDIAFILE),
+    'type' => MENU_VISIBLE_IN_BREADCRUMB,
+  );
+*/
+
+/*
+  $items['csa/upload/still/%/%'] = array(
+    'title' => 'Upload still as a picture',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('wle_upload_still_picture', 3, 4),
+    'access arguments' => array(CSA_PERMISSION_UPLOAD_MEDIAFILE),
+    'type' => MENU_CALLBACK,
+  );
+*/
+  return $items;
+}
+
+/**
+ * Form for uploading mediafile(s).
+ *
+ * @param array $form_state
+ * @return array
+ */
+function csa_upload_form() {
+  global $user;
+
+  // @TODO Settings.
+  $file_max_size = 2 * 1024 * 1024; // 2gb (bytes).
+  $upload_limit_count = 100; // max files in queue.
+
+  $module_path = drupal_get_path('module', 'csa_upload');
+  drupal_add_js($module_path . '/swfupload/swfupload.js', 'module');
+  drupal_add_js($module_path . '/swfupload/swfupload.queue.js', 'module');
+  drupal_add_js($module_path . '/swfupload/fileprogress.js', 'module');
+  drupal_add_js($module_path . '/swfupload/handlers.js', 'module');
+
+  drupal_add_js(
+    theme(
+      'csa_upload_swf_upload_form',
+      base_path() . $module_path,
+      url('csa/upload/404'),
+      round($file_max_size / 1024) . ' MB',
+      '*.*',
+      (!empty($user->sid) ? $user->sid : session_id()),
+      $upload_limit_count,
+      _csa_upload_id_get(),
+      variable_get('csa_swfupload_debug', FALSE) ? 'true' : 'false'
+    ),
+    'inline'
+  );
+
+  drupal_add_css($module_path . '/csa_upload.css', 'module', 'all', FALSE);
+  drupal_add_js($module_path . '/csa_upload.js', 'module');
+
+  return csa_upload_swf_form();
+}
+
+/**
+ * The form that holds the flash and queue.
+ */
+function csa_upload_swf_form() {
+  $form = array();
+
+  // Create the form.
+  $form['csa_swf_form'] = array(
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+    '#weight' => 0,
+  );
+
+  // Space to messages to user.
+  $form['csa_swf_form']['message'] = array(
+    '#value' => '<div id="jsstatus"></div>',
+    '#prefix' => '<div id="uploadform" style="visibility:hidden;"></div>', // needed to scroll to error and status messages
+    '#weight' => -7,
+  );
+
+  $enter_collection = array(
+    '#type' => 'textfield',
+    '#size' => 40,
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#default_value' => _csa_get_default_collection_name(),
+    '#name' => 'enter_collection',
+    '#id' => 'edit-enter-collection',
+    '#attributes' => array(
+      'onclick' => 'csa_click_enter_collection();',
+    ),
+  );
+
+  $select_collection = array(
+    '#type' => 'select',
+    '#options' => _csa_get_upload_collections_for_select(),
+    '#maxlength' => 128,
+    '#name' => 'select_collection',
+    '#id' => 'edit-select-collection',
+    '#attributes' => array(
+      'onclick' => 'csa_click_select_collection();',
+    ),
+  );
+
+  $collection_enter = array(
+    'enter' => drupal_render($enter_collection),
+    'select' => drupal_render($select_collection)
+  );
+  $form['csa_swf_form']['upload_buttons']['action']['radio_collection'] = array(
+    '#type' => 'radios',
+    '#id' => 'csaRadio-form-item',
+    '#options' => $collection_enter,
+    '#title' => t('Enter or select the upload collection'),
+    '#required' => TRUE,
+    '#default_value' => 'select',
+    '#attributes' => array(
+      'onclick' => 'csa_click_radio_collection();',
+    ),
+  );
+
+  $form['csa_swf_form']['select_files'] = array(
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+  );
+  // Drupal 6 Bug: can't use "normal" buttons, only submit buttons are possible => workaround
+  $form['csa_swf_form']['select_files']['upload_button'] = array(
+    '#prefix' => '<div id="csaSelectFiles">',
+    '#value' => '<span id="spanUploadButton"></span> ',
+    '#suffix' => '</div>',
+  );
+
+  $form['csa_swf_form']['select_files'] = array(
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+  );
+  // Drupal 6 Bug: can't use "normal" buttons, only submit buttons are possible => workaround
+  $form['csa_swf_form']['select_files']['upload_button'] = array(
+    '#prefix' => '<div id="csaSelectFiles">',
+    '#value' => '<span id="spanUploadButton"></span> ',
+    '#suffix' => '</div>',
+  );
+
+  // A list of progress bars.
+  $form['csa_swf_form']['select_files']['upload'] = array(
+    '#prefix' => '<div id="csaUploadForm">',
+    '#suffix' => '</div>',
+    '#type' => 'fieldset',
+    '#title' => t('Mediafile upload queue'),
+    '#value' => '<span style="font-style:italic;">' .t('Click the icon on the left to begin.') .'</span><br /><div id="csaUploadProgress"></div><br /><input type="button" value="' . t('Upload Mediafiles') . '" id="startuploadbutton" onclick="startUploadProcess();window.location.href=\'#uploadform\'" disabled="disabled" /><input id="btnCancel" type="button" value="'. t('Cancel remaining uploads') .'" onclick="swfu.cancelQueue();" disabled="disabled" />',
+    '#attributes' => array('class' => 'csa-queue'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['csa_swf_form']['upload_bottom']['cancel'] = array(
+    '#prefix' => '<div id="csaCancelBut">',
+    '#suffix' => '</div>',
+  );
+
+  $form['csa_swf_form']['upload_button']['action'] = array(
+    '#prefix' => '<div id="csaAction">',
+    '#suffix' => '</div>',
+  );
+
+  // Stored id when uploading.
+  $form['coll_id'] = array('#type' => 'hidden', '#value' => '', '#id' => 'csa_coll_id');
+
+  // Upload info.
+  $form['csa_swf_form']['upload_info'] = array(
+    '#value' => t('No files uploaded.') . ' ',
+    '#prefix' => '<div id="divStatus">',
+    '#suffix' => '</div>',
+  );
+
+  return $form;
+}
+
+/**
+ * Upload still as a picture
+
+function wle_upload_still_picture($asset_id, $mediafile_id) {
+
+  $form = array();
+
+  $form['back_link'] = array(
+    '#type' => 'item',
+    '#value' => l(t('Back to mediafile'), 'csa/mediafile/'. $mediafile_id),
+  );
+
+  $options = array();
+  for ($i = -20; $i <= 20; $i++) {
+    $options[$i] = $i;
+  }
+  $form['order'] = array(
+    '#type' => 'select',
+    '#title' => t('Order'),
+    '#default_value' => 0,
+    '#options' => $options,
+  );
+
+  $form['default'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Default'),
+  );
+
+  $form['tag'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Tag'),
+    '#size' => 60,
+    '#maxlength' => 128,
+  );
+
+  $form['file'] = array(
+    '#type' => 'file',
+    '#name' => 'file',
+    '#title' => t('Your still'),
+    '#required' => TRUE,
+  );
+  $form['#attributes'] = array('enctype' => 'multipart/form-data');
+
+  $form['asset_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $asset_id,
+  );
+
+  $form['mediafile_id'] = array(
+    '#type' => 'hidden',
+    '#value' => $mediafile_id,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Start upload'),
+  );
+
+  $form['redirect_uri'] = array(
+    '#type' => 'hidden',
+    '#value' => url('csa/mediafile/' . $mediafile_id, array('absolute' => TRUE)),
+  );
+
+  $mediamosa_connector = new mediamosa_connector();
+  if (!$action = _wle_upload_create_upload_action($mediamosa_connector, $mediafile_id)) {
+    drupal_set_message(t('Internal error: Unable to create upload ticket. Please try again later.'), 'error');
+    drupal_goto('mediafile/'. $mediafile_id);
+  }
+  $form['#action'] = $action .'&still_upload=TRUE';
+
+  return $form;
+}
+*/
+
+/**
+ * Create the upload ticket
+ *
+
+
+/**
+ * Helper function to get an upload ticket & uploadprogress
+ *
+function _wle_upload_create_upload_uploadprogress_url(&$vpx, $mediafile_id) {
+
+  $response = _wle_upload_create_upload($vpx, $mediafile_id);
+
+  if ($vpx->check_result($response) && isset($response->items->item->uploadprogress_url)) {
+    return (string)$response->items->item->uploadprogress_url;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Upload to a new or existing mediafile in an existing asset
+ *
+function wle_upload_add_mediafile() {
+  $asset_id = arg(1);
+  $vpx = new vpx_connector();
+  $_SESSION['wle_upload']['asset_id'] = $asset_id;
+
+  // Create a new mediafile
+  if (!$mediafile_id = _wle_upload_create_mediafile($vpx, $asset_id)) {
+    $vpx->check_result($result);
+    drupal_set_message(t('Internal error: Unable to create mediafile. Please try again later.'), 'error');
+    drupal_goto('asset/'. $asset_id);
+  }
+
+  // Get an upload action
+  if (!$_SESSION['wle_upload']['action'] = _wle_upload_create_upload_action($vpx, $mediafile_id)) {
+    $result = $vpx->request('POST', '/mediafile/'. $mediafile_id .'/delete');
+    $vpx->check_result($result);
+    drupal_set_message(t('Internal error: Unable to create upload ticket. Please try again later.'), 'error');
+    drupal_goto('asset/'. $asset_id);
+  }
+
+  // Set the uploadprogress_url, might be FALSE
+  $_SESSION['wle_upload']['uploadprogress_url'] = _wle_upload_create_upload_uploadprogress_url($vpx, $mediafile_id);
+
+  $form = wle_upload_step_2_form();
+  return $form;
+}
+
+/**
+ * Form for step 2 for uploading mediafile
+ *
+function wle_upload_step_2_form() {
+  // Ticket info set?
+  if (!isset($_SESSION['wle_upload'])) {
+    drupal_set_message(t('No metadata information found'), 'error');
+    drupal_goto('upload');
+  }
+
+  $form = array();
+
+  $form['redirect_uri'] = array(
+    '#type' => 'hidden',
+    '#value' => url('upload/success/'. $_SESSION['wle_upload']['asset_id'], array('absolute' => TRUE)),
+  );
+
+  /*
+  // completed_transcoding_url
+  $form['completed_transcoding_url'] = array(
+    '#type' => 'hidden',
+    '#value' => 'http://wle/completed_transcoding_url',
+  );
+  $form['transcode'] = array(
+    '#type' => 'hidden',
+    '#value' => '2',
+  );
+   *
+
+  if (wle_get_version() >= '1.7') {
+    // Still
+    $form['create_still'] = array(
+      '#type' => 'hidden',
+      '#value' => 'true',
+    );
+    $form['still_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Type of creating stills'),
+      '#default_value' => 'NONE',
+      '#options' => array(
+        'NONE' => t('NONE - original behaviour'),
+        'NORMAL' => t('NORMAL - x stills per mediafile'),
+        'SECOND' => t('SECOND - one still every x seconds'),
+        'SCENE' => t('SCENE - one still for each scene'),
+      ),
+    );
+    $form['still_per_mediafile'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Still per mediafile'),
+      '#default_value' => CSA_UPLOAD_STILL_PER_MEDIAFILE,
+      '#description' => 'For NORMAL stills',
+    );
+    $form['still_every_second'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Still on every seconds'),
+      '#default_value' => CSA_UPLOAD_STILL_EVERY_SECOND,
+      '#description' => 'For SECOND stills',
+    );
+    $form['start_frame'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Start frame'),
+      '#default_value' => CSA_UPLOAD_START_FRAME,
+      '#description' => 'For NORMAL and SECOND stills',
+    );
+    $form['end_frame'] = array(
+      '#type' => 'textfield',
+      '#title' => t('End frame'),
+      '#default_value' => CSA_UPLOAD_END_FRAME,
+      '#description' => 'For NORMAL and SECOND stills',
+    );
+    $form['size'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Size'),
+      '#default_value' => CSA_UPLOAD_SIZE,
+      '#description' => 'All stills may have',
+    );
+    $form['h_padding'] = array(
+      '#type' => 'textfield',
+      '#title' => t('H padding'),
+      '#default_value' => CSA_UPLOAD_H_PADDING,
+      '#description' => 'All stills may have',
+    );
+    $form['v_padding'] = array(
+      '#type' => 'textfield',
+      '#title' => t('V padding'),
+      '#default_value' => CSA_UPLOAD_V_PADDING,
+      '#description' => 'All stills may have',
+    );
+  }
+
+  $form['#attributes'] = array('enctype' => 'multipart/form-data');
+  $form['#action'] = $_SESSION['wle_upload']['action'];
+
+//  $form['completed_url'] = array(
+//    '#type' => 'hidden',
+//    '#value' => 'http://app.test.vpx.kennisnet.nl/test.php',
+//  );
+
+  // Expect to be set
+  if (isset($_SESSION['wle_upload']['uploadprogress_url']) && $_SESSION['wle_upload']['uploadprogress_url'] !== FALSE) {
+    $form['#uploadprogress_url'] = base_path() .'upload/progress';
+  }
+
+  $form['file'] = array(
+    '#type' => 'file',
+    '#name' => 'file',
+    '#title' => t('Your Mediafile'),
+    '#required' => TRUE,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Start upload'),
+  );
+
+  // Unset the ticket stuff...(except the uploadprogress_url)
+  $tmp = $_SESSION['wle_upload']['uploadprogress_url'];
+  unset($_SESSION['wle_upload']);
+  $_SESSION['wle_upload']['uploadprogress_url'] = $tmp;
+
+  return $form;
+}
+
+/**
+ * The page that is called when upload returned
+ *
+function wle_upload_success($asset_id) {
+  drupal_set_message(t('Upload finished at %date', array('%date' => format_date(time(), 'small'))));
+  $items = array();
+  $items[] = l(t('View your newly uploaded file'), 'asset/'. $asset_id);
+  $items[] = l(t('Create a new video'), 'upload');
+  return theme('item_list', $items);
+}
+
+function _upload_fetch_na() {
+  return array(
+    'message' => t('Uploading (No Progress Information Available)'),
+    'percentage' => -1,
+    'status' => 1,
+  );
+}
+
+function _upload_fetch($id) {
+  if (!isset($_SESSION['wle_upload']['uploadprogress_url'])) {
+    exit(json_encode(_upload_fetch_na()));
+  }
+
+  $result = drupal_http_request($_SESSION['wle_upload']['uploadprogress_url'] ."?id=". urlencode($id));
+
+  if ($result->code != 200) {
+    exit(json_encode(_upload_fetch_na()));
+  }
+
+  exit($result->data);
+}
+*/
