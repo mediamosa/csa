@@ -22,6 +22,10 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
+CSA v1.0.8 (build 157)
+----------------------
+- Fixed notices during upload when URL was build for ticket.
+
 CSA v1.0.7 (build 155)
 ----------------------
 - Fixed redirect problems when using submap installs.

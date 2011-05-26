@@ -38,6 +38,16 @@ function _csa_build_url($urls, $return_parts = FALSE) {
     'uri' => array(),
   );
 
+  // Setup default.
+  $urls += array(
+    'user' => '',
+    'pass' => '',
+    'port' => 0,
+    'path' => '',
+    'query' => '',
+    'fragment' => '',
+  );
+
   // Add user : pass
   if ($urls['user'] != '' || $urls['pass'] != '') {
     $result['host'][] = $urls['user'];

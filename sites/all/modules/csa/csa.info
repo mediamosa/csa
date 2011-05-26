@@ -2,6 +2,6 @@
 name = "Core"
 description = "The Client Supplier Application Core"
 package = CSA
-version = "1.0.7.155"
+version = "1.0.8.157"
 core = 6.x
 dependencies[] = mediamosa_connector

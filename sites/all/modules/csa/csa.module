@@ -29,7 +29,7 @@
  * This module contains all shared functions of the CSA application
  */
 
-define('CSA_VERSION', '1.0.7.155');
+define('CSA_VERSION', '1.0.8.157');
 
 define('CSA_SETTINGS_SUBMIT_TEXT_ADD_REQUIRED_METADATA', 'Add required metadata >>');
 define('CSA_SETTINGS_SUBMIT_TEXT_REMOVE_REQUIRED_METADATA', '<< Remove required metadata');
