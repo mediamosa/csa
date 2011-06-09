@@ -7,10 +7,10 @@ Install the csa as a regular drupal 6 installation (see http://drupal.org/), but
 
 Postinstall
 -----------
-After install or upgrade the Drupal, you have to patch the htaccess file.
+After install or upgrade the Drupal, you can patch the htaccess file if you need/want HTTPS.
 
 Also in the file /sites/default.settings.php (or settings.php) at the 
-end there is a url you need to change;
+end there is a url you need to change (for HTTPS);
 
 if (!empty($_SERVER['HTTPS'])) {
   ini_set('session.cookie_secure', 1);
