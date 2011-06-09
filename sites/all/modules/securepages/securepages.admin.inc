@@ -1,11 +1,9 @@
 <?php
-// $Id: securepages.admin.inc,v 1.1.2.1 2009/03/29 10:49:12 gordon Exp $
-
 /**
  * @file
  * Provide all the administration pages
  */
- 
+
  /**
   * Implementation of hook_settings().
   */
@@ -63,5 +61,4 @@
    );
    return system_settings_form($form);
  }
- 
- 
+

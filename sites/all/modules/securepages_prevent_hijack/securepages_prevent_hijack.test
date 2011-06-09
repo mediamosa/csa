@@ -1,6 +1,4 @@
 <?php
-// $Id: securepages_prevent_hijack.test,v 1.1.2.4 2009/05/27 18:10:26 grendzy Exp $
-
 /**
  * @file
  * Simpletests for securepages_prevent_hijack.

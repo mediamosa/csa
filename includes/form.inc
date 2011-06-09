@@ -1,5 +1,4 @@
 <?php
-// $Id: form.inc,v 1.265.2.35 2010/11/04 09:55:29 goba Exp $
 
 /**
  * @defgroup forms Form builder functions
@@ -303,7 +302,7 @@ function drupal_execute($form_id, &$form_state) {
 
   // Make sure $form_state is passed around by reference.
   $args[1] = &$form_state;
-
+  
   $form = call_user_func_array('drupal_retrieve_form', $args);
   $form['#post'] = $form_state['values'];
   drupal_prepare_form($form_id, $form, $form_state);
@@ -769,8 +768,8 @@ function form_execute_handlers($type, &$form, &$form_state) {
 
   foreach ($handlers as $function) {
     if (function_exists($function))  {
-      // Check to see if a previous _submit handler has set a batch, but
-      // make sure we do not react to a batch that is already being processed
+      // Check to see if a previous _submit handler has set a batch, but 
+      // make sure we do not react to a batch that is already being processed 
       // (for instance if a batch operation performs a drupal_execute()).
       if ($type == 'submit' && ($batch =& batch_get()) && !isset($batch['current_set'])) {
         // Some previous _submit handler has set a batch. We store the call

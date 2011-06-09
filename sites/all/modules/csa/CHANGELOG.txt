@@ -1,9 +1,7 @@
-// $Id: 
-
 /**
  * CSA is open source Software.
  *
- * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * Copyright (C) 2011 SURFnet BV (http://www.surfnet.nl) and Kennisnet
  * (http://www.kennisnet.nl)
  *
  * CSA is developed for the open source Drupal platform (http://drupal.org).
@@ -21,6 +19,12 @@
  * with this program; if not, you can find it at:
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
+
+CSA v1.0.9 (build 159)
+----------------------
+- Upgraded to Drupal 6.22
+- Removed all // $ID$, as this is no longer used in Drupal code standard.
+- Updated the copyright text to name release as CSA.
 
 CSA v1.0.8 (build 157)
 ----------------------

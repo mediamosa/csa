@@ -1,4 +1,3 @@
-; $Id $
 name = "Collections"
 description = "Allows the CSA user to create, edit and delete collections."
 package = CSA

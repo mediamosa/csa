@@ -1,4 +1,3 @@
-; $Id $
 name = "Upload"
 description = "The upload module allows you to upload mediafiles to MediaMosa."
 package = CSA

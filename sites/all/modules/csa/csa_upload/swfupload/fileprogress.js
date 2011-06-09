@@ -1,5 +1,3 @@
-/* $Id: $ */
-
 /*
 	File: fileprogress.js
 	A simple class for displaying file information and progress

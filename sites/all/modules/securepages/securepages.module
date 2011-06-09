@@ -1,5 +1,4 @@
 <?php
-// $Id: securepages.module,v 1.15.2.22 2009/05/03 23:00:18 gordon Exp $
 /**
  * @file
  * Provide method of creating allowing certain pages to only viewable from
@@ -22,7 +21,7 @@ function securepages_boot() {
     }
     exit();
   }
-  
+
   if (!variable_get('securepages_enable', 0) || basename($_SERVER['PHP_SELF']) != 'index.php') {
     return;
   }
@@ -173,7 +172,7 @@ function securepages_redirect() {
  */
 function securepages_goto($secure) {
   global $base_root;
-  
+
   $_SESSION['securepages_redirect'] = TRUE;
   $path = !empty($_REQUEST['q']) ? $_REQUEST['q'] : '';
   $query = count($_GET) > 1 ? securepages_get_query($_GET) : NULL;
@@ -190,7 +189,7 @@ function securepages_goto($secure) {
     bootstrap_invoke_all('exit');
   }
   header('Location: '. $url);
-  
+
   // Make sure the cache is clear so that the next page will not pick up a cached version.
   cache_clear_all($base_root . request_uri(), 'cache_page');
   exit();
@@ -455,22 +454,22 @@ function securepages_urlencode($text) {
  */
 function securepages_can_alter_url($url) {
   global $base_path, $base_url;
-  
+
   @extract(@parse_url($url));
-  
+
   // If there is no scheme then it is a relative url and can be altered
   if (!isset($scheme) && $base_path == '/') {
     return TRUE;
   }
-  
+
   // If the host names are not the same then don't allow altering of the path.
   if (isset($host) && strtolower($host) != strtolower($_SERVER['HTTP_HOST'])) {
     return FALSE;
   }
-  
+
   if (strlen($base_path) > 1 && substr($base_url, -1) != substr($path, 1, strlen($base_path))) {
     return FALSE;
   }
-  
+
   return TRUE;
 }

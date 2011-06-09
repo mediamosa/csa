@@ -1,4 +1,3 @@
-$Id: FAQ.txt,v 1.1.2.1 2009/03/31 11:04:23 gordon Exp $
 
 1. Running secure pages on the Nginx web server. See http://drupal.org/node/390450#comment-1420518
 

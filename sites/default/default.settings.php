@@ -1,5 +1,4 @@
 <?php
-// $Id: default.settings.php,v 1.8.2.5 2010/12/15 13:21:14 goba Exp $
 
 /**
  * @file
@@ -257,16 +256,3 @@ ini_set('url_rewriter.tags',        '');
 #   'forum'      => 'Discussion board',
 #   '@count min' => '@count minutes',
 # );
-
-
-/**
- * Added for CSA when using HTTPS:
- */
-if (!empty($_SERVER['HTTPS'])) {
-  ini_set('session.cookie_secure', 1);
-  $base_url = 'https://csa.local';
-}
-else {
-  $base_url = 'http://csa.local';
-}
-

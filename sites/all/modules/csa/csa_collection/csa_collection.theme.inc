@@ -1,10 +1,8 @@
 <?php
-// $Id$
-
 /**
  * CSA is open source Software.
  *
- * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * Copyright (C) 2011 SURFnet BV (http://www.surfnet.nl) and Kennisnet
  * (http://www.kennisnet.nl)
  *
  * CSA is developed for the open source Drupal platform (http://drupal.org).

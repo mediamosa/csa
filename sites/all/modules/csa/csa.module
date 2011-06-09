@@ -1,15 +1,12 @@
 <?php
-// $Id$
-
 /**
- * MediaMosa is a Full Featured, Webservice Oriented Media Management and
- * Distribution platform (http://www.vpcore.nl)
+ * CSA is open source Software.
  *
- * Copyright (C) 2009 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * Copyright (C) 2011 SURFnet BV (http://www.surfnet.nl) and Kennisnet
  * (http://www.kennisnet.nl)
  *
- * MediaMosa is based on the open source Drupal platform and
- * was originally developed by Madcap BV (http://www.madcap.nl)
+ * CSA is developed for the open source Drupal platform (http://drupal.org).
+ * CSA has been developed by Madcap BV (http://www.madcap.nl).
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -29,7 +26,7 @@
  * This module contains all shared functions of the CSA application
  */
 
-define('CSA_VERSION', '1.0.8.157');
+define('CSA_VERSION', '1.0.9.159');
 
 define('CSA_SETTINGS_SUBMIT_TEXT_ADD_REQUIRED_METADATA', 'Add required metadata >>');
 define('CSA_SETTINGS_SUBMIT_TEXT_REMOVE_REQUIRED_METADATA', '<< Remove required metadata');

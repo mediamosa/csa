@@ -1,6 +1,4 @@
 <?php
-// $Id: securepages_prevent_hijack.install,v 1.1.2.2 2009/02/12 23:02:05 grendzy Exp $
-
 /**
  * @file
  * Install file for securepages_prevent_hijack.

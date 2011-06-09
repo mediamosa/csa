@@ -1,5 +1,3 @@
-/* $Id: $ */
-
 /* 
 	File: handlers.js
 	Note: This code is mainly based on the demo "SWFUpload Demos - Simple Demo" 
