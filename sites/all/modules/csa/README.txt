@@ -2,6 +2,17 @@
 This file contains last minute or needed information for installing and running
 CSA.
 
+When replace CSA 1.0.x or lower with CSA 1.1.0 of higher note;
+- Updated CSA to latest version of SDK. When upgrading to 1.1+, make sure you
+  disable all CSA modules and the MediaMosa connector module. Then upgrade the
+  code; best is to replace the whole code tree (re-use the settings.php). What
+  you need to know is that mediamosa_connector module has been moved. Drupal has
+  no real method to fix this by update scripts. So its very important that you
+  turn off the CSA module and mediamosa_connector module and then replace the
+  code. Do not copy over the current version(!).
+
+
+
 Optional;
 Install https using securepages/securepages_prevent_hijack
 
@@ -52,7 +63,3 @@ if (!empty($_SERVER['HTTPS'])) {
 else {
   $base_url = 'http://csa.local';
 }
-
-
-
-

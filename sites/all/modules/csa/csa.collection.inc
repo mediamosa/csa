@@ -57,14 +57,14 @@ function _csa_collection_get($coll_id, $options = array()) {
 
   // Cache.
   if (empty($collections[$coll_id])) {
-    $collections[$coll_id] = mediamosa_connector::response2array(_csa_mediamosa_request('collection/' . rawurlencode($coll_id)), $options);
+    $collections[$coll_id] = mediamosa_connector::response2array(_csa_mediamosa_request('collection/' . rawurlencode($coll_id), $options));
   }
 
   if (!empty($options['get_acl'])) {
 
   }
 
-  return (empty($collections[$coll_id]) ? FALSE : ($skip_header ? reset($collections[$coll_id]['items']['item']) : $collections[$coll_id]));
+  return (empty($collections[$coll_id]['items']['item']) ? FALSE : ($skip_header ? reset($collections[$coll_id]['items']['item']) : $collections[$coll_id]));
 }
 
 /**

@@ -48,7 +48,6 @@ function _csa_asset_metadata_list($options = array()) {
 
   // Get the metadata tags.
   try {
-
     $offset = 0;
 
     while (true) {

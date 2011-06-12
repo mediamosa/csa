@@ -26,7 +26,7 @@
  * This module contains all shared functions of the CSA application
  */
 
-define('CSA_VERSION', '1.0.9.159');
+define('CSA_VERSION', '1.1.0.162');
 
 define('CSA_SETTINGS_SUBMIT_TEXT_ADD_REQUIRED_METADATA', 'Add required metadata >>');
 define('CSA_SETTINGS_SUBMIT_TEXT_REMOVE_REQUIRED_METADATA', '<< Remove required metadata');
@@ -38,19 +38,18 @@ define('CSA_MODE_QUERY', '0');
 define('CSA_MODE_SELECTION', '1');
 
 // Include our .inc.
-require_once('csa.inc');
-require_once('csa.app.inc');
-require_once('csa.asset.inc');
-require_once('csa.asset.job.inc');
-require_once('csa.asset.mediafile.inc');
-require_once('csa.asset.metadata.inc');
-require_once('csa.collection.inc');
-require_once('csa.log.inc');
-require_once('csa.mediamosa.errorcodes.inc');
-require_once('csa.misc.inc');
-require_once('csa.theme.inc');
-require_once('csa.still.inc');
-require_once('csa.user.inc');
+require_once 'csa.inc';
+require_once 'csa.app.inc';
+require_once 'csa.asset.inc';
+require_once 'csa.asset.job.inc';
+require_once 'csa.asset.mediafile.inc';
+require_once 'csa.asset.metadata.inc';
+require_once 'csa.collection.inc';
+require_once 'csa.log.inc';
+require_once 'csa.misc.inc';
+require_once 'csa.theme.inc';
+require_once 'csa.still.inc';
+require_once 'csa.user.inc';
 
 /**
  * Wildcard as used in search queries.

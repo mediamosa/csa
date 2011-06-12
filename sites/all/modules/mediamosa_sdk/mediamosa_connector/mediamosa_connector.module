@@ -30,7 +30,8 @@
  * and POST functions to communicate with MediaMosa.
  */
 
-require_once ('mediamosa_connector.class.inc');
+require_once 'mediamosa_connector.response.class.inc';
+require_once 'mediamosa_connector.class.inc';
 
 /**
  * Implement hook_menu().
@@ -172,7 +173,7 @@ function mediamosa_connector_settings() {
   $form['connection']['mediamosa_connector_url'] = array(
     '#type' => 'textfield',
     '#title' => t('URL'),
-    '#description' => t('Enter the URL of the interface you want to connect to.'),
+    '#description' => t('Enter the URL of the REST interface you want to connect to. Eg. http://mediamosa.local'),
     '#required' => FALSE,
     '#default_value' => variable_get('mediamosa_connector_url', ''),
   );
@@ -186,7 +187,7 @@ function mediamosa_connector_settings() {
   $form['connection']['mediamosa_connector_password'] = array(
     '#type' => 'textfield',
     '#title' => t('Password'),
-    '#description' => t('Password might be required to login.'),
+    '#description' => t("Password might be required to login, is also called 'shared key'."),
     '#required' => FALSE,
     '#default_value' => variable_get('mediamosa_connector_password', ''),
   );
@@ -219,6 +220,19 @@ function mediamosa_connector_settings() {
   return $form;
 }
 
+
+/**
+ * Implement hook_settings_validate().
+ */
+function mediamosa_connector_settings_validate(&$form_state, $form) {
+
+  // Values.
+  $values = $form['values'];
+
+  if (!valid_url($values['mediamosa_connector_url'], TRUE)) {
+    form_set_error('mediamosa_connector_url', t('The URL is not well formatted. Use this format: http://mediamosa.local or http://localhost/mediamosa'));
+  }
+}
 
 /**
  * Implement hook_settings_submit().

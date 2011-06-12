@@ -5,7 +5,7 @@
  * MediaMosa is Open Source Software to build a Full Featured, Webservice Oriented Media Management and
  * Distribution platform (http://mediamosa.org)
  *
- * Copyright (C) 2010 SURFnet BV (http://www.surfnet.nl) and Kennisnet
+ * Copyright (C) 2011 SURFnet BV (http://www.surfnet.nl) and Kennisnet
  * (http://www.kennisnet.nl)
  *
  * MediaMosa is based on the open source Drupal platform and
@@ -31,7 +31,8 @@
  */
 
 /**
- * mediamosa_connector is a class which conains all functions for communication with VP-X
+ * mediamosa_connector is a class which contains all functions for communication
+ * with MediaMosa backend REST interface.
  */
 class mediamosa_connector {
 
@@ -43,12 +44,12 @@ class mediamosa_connector {
   // Log will store the last # of requests and will drop the first.
   const MAX_LOG_ENTRIES = 50;
 
-  // MediaMosa errorcodes we use.
-  const HTTP_NOT_FOUND = 404;
-  const ERRORCODE_OKAY = 601;
-  const ERRORCODE_EMPTY_RESULT = 705;
-  const ERRORCODE_ACCESS_DENIED = 1601;
-  const ERRORCODE_NOT_AUTHORIZED = 1800;
+  // Connector error codes.
+  const ERROR_NONE = 0;
+  const ERROR_CONNECTOR_NOT_SETUP = 1;
+  const ERROR_UNABLE_TO_LOGIN = 2;
+  const ERROR_RESPONSE_RETURNED_ERROR = 3;
+  const ERROR_UNKNOWN = 4;
 
   // ------------------------------------------------------------------ Members.
   // The URL to connect to.
@@ -69,6 +70,10 @@ class mediamosa_connector {
   private $username;
   private $password;
 
+  // Contains possible last error code.
+  private $last_error = self::ERROR_NONE;
+  private $last_error_text = '';
+
   // -------------------------------------------------------------- Constructor.
   public function __construct($username = NULL, $password = NULL, $url = NULL) {
     $this->url = isset($url) ? $url : variable_get('mediamosa_connector_url', NULL);
@@ -80,6 +85,35 @@ class mediamosa_connector {
     // Get cookie.
     $cookies = variable_get('mediamosa_connector_cookies', array());
     $this->cookie = !empty($cookies[$this->url][$this->username][$this->password]) ? $cookies[$this->url][$this->username][$this->password] : NULL;
+  }
+
+  // --------------------------------------------------------- Public Functions.
+  /**
+   * Return the last error.
+   */
+  public function get_last_error() {
+    return $this->last_error;
+  }
+
+  /**
+   * Return the last error as text.
+   *
+   * Will return FALSE when no error was found.
+   */
+  public function get_last_error_text() {
+
+    if (!empty($this->last_error_text)) {
+      return $this->last_error_text;
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Return an ID we can use to identify this connection.
+   */
+  public function get_connection_id() {
+    return empty($this->username) || empty($this->url) ? FALSE : sha1($this->username . '@' . $this->url);
   }
 
   /**
@@ -98,9 +132,12 @@ class mediamosa_connector {
       unset($cookies[$this->url][$this->username][$this->password]);
       variable_set('mediamosa_connector_cookies', $cookies);
     }
+
+    // Reset last error.
+    $this->last_error = self::ERROR_NONE;
+    $this->last_error_text = '';
   }
 
-  // --------------------------------------------------------- Public Functions.
   /**
    * @param string $uri
    *  The REST uri.
@@ -113,7 +150,9 @@ class mediamosa_connector {
    *   - fatal
    *       Boolean value, TRUE makes the call throw an exception if the call
    *       failed. That means, failed to call, failed to access the rest etc.
-   *       Empty results are not fatal. Default is FALSE.
+   *       Empty results are not fatal. It will either return a response or
+   *       throw exception. Default is FALSE (call will returns response or
+   *       FALSE).
    *   - headers
    *       An array containing request headers to send as name/value pairs.
    *   - method
@@ -133,70 +172,96 @@ class mediamosa_connector {
    */
   public function request($uri, array $options = array()) {
 
-    if (empty($this->url)) {
-      watchdog('mediamosa connector', 'Unable to do request, connector not setup.');
-      return;
-    }
+    // No response yet.
+    $response = FALSE;
 
+    // Setup options.
     $options += array(
       'fatal' => FALSE, // Default is not to react to problems with exceptions.
       'user_id' => '',
       'group_id' => '',
+      'mediamosa_version' => '', // Latest.
     );
+
+    // Use user_id?
+    if (!empty($options['user_id'])) {
+      assert(empty($options['data']['user_id']));
+      $options['data']['user_id'] = $options['user_id'];
+    }
+
+      // Use group_id?
+    if (!empty($options['group_id'])) {
+      assert(empty($options['data']['group_id']));
+      $options['data']['group_id'] = $options['group_id'];
+    }
+
+    // Use mediamosa_version?
+    if (!empty($options['mediamosa_version'])) {
+      assert(empty($options['data']['mediamosa_version']));
+      $options['data']['mediamosa_version'] = $options['mediamosa_version'];
+    }
 
     // Copy settings.
     $fatal = $options['fatal'];
-    $user_id = $options['user_id'];
-    $group_id = $options['group_id'];
     unset($options['fatal'], $options['user_id'], $options['group_id']);
 
-    // If cookie not set, then login first.
-    if (!isset($this->cookie) && !$this->do_login()) {
-      return FALSE; // Failed request.
-    }
+    // Initialize as unknown failure.
+    $this->last_error = self::ERROR_UNKNOWN;
+    $this->last_error_text = t('Unable to execute Mediamosa REST call @uri', array('@uri' => $uri));
 
-    // Use user_id?
-    if (!empty($user_id)) {
-      assert(!is_array($options['data']) || empty($options['data']['user_id']));
-      $options['data']['user_id'] = $user_id;
-    }
-
-    // Use group_id?
-    if (!empty($group_id)) {
-      assert(!is_array($options['data']) || empty($options['data']['group_id']));
-      $options['data']['group_id'] = $group_id;
-    }
-
-    // Try the request.
-    $response = $this->do_request($uri, $options);
-
-    // If response failed, then try to login.
-    if ($response && in_array((int) $response->xml->header->request_result_id, array(self::ERRORCODE_ACCESS_DENIED, self::ERRORCODE_NOT_AUTHORIZED))) {
-      // Login again.
-      if (self::do_login()) {
-        $response = $this->do_request($uri, $options);
+    try {
+      if (empty($this->url)) {
+        throw new Exception(t('Unable to do request, connector not setup.'), self::ERROR_CONNECTOR_NOT_SETUP);
       }
-    }
 
-    // Check the final response.
-    if ($response) {
-      $result_id = (int) $response->xml->header->request_result_id;
-      $result_description = $response->xml->header->request_result_description;
+      // If cookie not set, then login first.
+      if (!isset($this->cookie) && !$this->do_login()) {
+        throw new Exception(t('Unable to do request, failed to login.'), self::ERROR_UNABLE_TO_LOGIN);
+      }
 
-      if ($fatal && !in_array($result_id, array(self::ERRORCODE_OKAY, self::ERRORCODE_EMPTY_RESULT))) {
-        if (empty($result_description)) {
-          throw new Exception(strtr('Unable to execute Mediamosa REST call @uri (@code)', array('@uri' => $uri, '@code' => $result_id)), $result_id);
+      // Try the request.
+      $response = $this->do_request($uri, $options);
+
+      // If response failed, then try to login.
+      if (!empty($response) && !empty($response->xml) && in_array((int) $response->xml->header->request_result_id, array(mediamosa_sdk::ERRORCODE_ACCESS_DENIED, mediamosa_sdk::ERRORCODE_NOT_AUTHORIZED))) {
+
+        // Not authorized? Try to login.
+        if (self::do_login()) {
+          $response = $this->do_request($uri, $options);
+        }
+      }
+
+      // Check the final response.
+      if (!empty($response) && !empty($response->xml) && !empty($response->xml->header)) {
+        $result_id = (int) $response->xml->header->request_result_id;
+        $result_description = (string) $response->xml->header->request_result_description;
+
+        if ($fatal && !in_array($result_id, array(mediamosa_sdk::ERRORCODE_OKAY, mediamosa_sdk::ERRORCODE_EMPTY_RESULT))) {
+
+          if (empty($result_description)) {
+            $this->last_error_text = t('Unable to execute Mediamosa REST call @uri (@code)', array('@uri' => $uri, '@code' => $result_id));
+          }
+          else {
+            $this->last_error_text = t('@description (@code)', array('@description' => $result_description, '@code' => $result_id));
+          }
+
+          throw new Exception($this->last_error_text, self::ERROR_RESPONSE_RETURNED_ERROR);
         }
 
-        throw new Exception(strtr('@description (@code)', array('@description' => $result_description, '@code' => $result_id)), $result_id);
+        return $response;
       }
+    }
+    catch (Exception $e) {
+      // Catch and log.
+      self::watchdog('mediamosa connector', $e->getMessage());
 
-      return $response;
+      $this->last_error = $e->getCode();
+      $this->last_error_text = $e->getMessage();
     }
 
     // When fatal, throw exception.
     if ($fatal) {
-      throw new Exception(strtr('Unable to execute Mediamosa REST call !uri', array('!uri' => $uri)));
+      throw new Exception($this->last_error_text, $this->last_error);
     }
 
     return FALSE;
@@ -227,7 +292,7 @@ class mediamosa_connector {
   // -------------------------------------------------------- Private Functions.
   private function do_login() {
     if (empty($this->url)) {
-      watchdog('mediamosa connector', 'Unable to do request, connector not setup.');
+      self::watchdog('mediamosa connector', 'Unable to do request, connector not setup.');
       return FALSE;
     }
 
@@ -242,7 +307,7 @@ class mediamosa_connector {
       return FALSE;
     }
 
-    if ($response->xml->header->request_result_id == self::HTTP_NOT_FOUND) {
+    if ($response->xml->header->request_result_id == mediamosa_sdk::HTTP_NOT_FOUND) {
       drupal_set_message(t('Enable the Application Authentication module, unable to login.'), 'error');
       return FALSE;
     }
@@ -386,7 +451,7 @@ class mediamosa_connector {
     // If we detect xml output, fill the xml member.
     if ((int) $response->code == 200 && (strpos($response->headers['content-type'], 'text/xml') !== FALSE || drupal_substr($response->data, 0, drupal_strlen('<?xml')) == '<?xml')) {
       try {
-        $response->xml = new SimpleXMLElement($response->data);
+        $response->xml = new mediamosa_connector_response($response->data);
       }
       catch (Exception $e) {
         // Dont care.
@@ -414,6 +479,15 @@ class mediamosa_connector {
       return FALSE;
     }
 
+    // Basic version.
+    $version = '1.0.0';
+    if (!empty($response->xml->header->version)) {
+      $version = $response->xml->header->version; // Position is the same on all MediaMosa versions.
+    }
+
+    // Store an version array in the response object.
+    $response->mediamosa_version = mediamosa_sdk::parse_version($version);
+
     // Return result.
     return $response;
   }
@@ -428,7 +502,7 @@ class mediamosa_connector {
   static public function check_result($response, $ok = NULL, $error = NULL) {
     $result_id = $response ? (int)$response->xml->header->request_result_id : 0;
 
-    if ($result_id != self::ERRORCODE_OKAY && $result_id != self::ERRORCODE_EMPTY_RESULT) {
+    if ($result_id != mediamosa_sdk::ERRORCODE_OKAY && $result_id != mediamosa_sdk::ERRORCODE_EMPTY_RESULT) {
       if (isset($error)) {
         $error = t($error, array('%code' => $result_id, '%message' => $response->xml->header->request_result_description));
         drupal_set_message($error, 'error');
@@ -450,6 +524,10 @@ class mediamosa_connector {
    * @param object $xml
    */
   private static function _simplexml2array($xml) {
+    if (is_object($xml) && get_class($xml) == 'mediamosa_connector_response') {
+      return self::_simplexml2array($xml->get());
+    }
+
     $xml_copy = $xml;
     if (is_object($xml) && get_class($xml) == 'SimpleXMLElement') {
       foreach ($xml->attributes() as $key => $value) {
@@ -523,5 +601,40 @@ class mediamosa_connector {
    */
   public static function response2array($response) {
     return $response ? self::responsexml2array($response->xml) : FALSE;
+  }
+
+  /**
+   * Wrapper around watchdog, minor diff. with drupal 6 version.
+   */
+  public function watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NOTICE, $link = NULL) {
+    if (DRUPAL_CORE_COMPATIBILITY == '6.x') {
+      $type = substr($type, 0, 16);// Type is max len 16 chars.
+    }
+
+    watchdog($type, $message, $variables, $severity, $link);
+  }
+
+  /**
+   * Variable_get wrapper for connection dependent variables.
+   */
+  public function variable_get($name, $default = NULL) {
+    // TODO
+    return variable_get($name, $default);
+  }
+
+  /**
+   * Variable_set wrapper for connection dependent variables.
+   */
+  public function variable_set($name, $value) {
+    // TODO
+    variable_set($name, $value);
+  }
+
+  /**
+   * Variable_del wrapper for connection dependent variables.
+   */
+  public function variable_del($name) {
+    // TODO
+    variable_del($name);
   }
 }

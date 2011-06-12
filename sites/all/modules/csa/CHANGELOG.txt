@@ -20,6 +20,17 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
+CSA v1.1.0 (build 162)
+----------------------
+- Updated CSA to latest version of SDK. When upgrading to 1.1, make sure you
+  disable all CSA modules and the MediaMosa connector module. Then upgrade the
+  code; best is to replace the whole code tree (re-use the settings.php). What
+  you need to know is that mediamosa_connector module has been moved. Drupal has
+  no real method to fix this by update scripts. So its very important that you
+  turn off the CSA module and mediamosa_connector module and then replace the
+  code. Do not copy over the current version(!).
+
+
 CSA v1.0.9 (build 159)
 ----------------------
 - Upgraded to Drupal 6.22

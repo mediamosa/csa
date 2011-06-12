@@ -35,7 +35,7 @@
  *   An array of modules to enable.
  */
 function csa_default_profile_modules() {
-  return array('color', 'comment', 'help', 'menu', 'taxonomy', 'dblog', 'mediamosa_connector', 'csa', 'csa_collection', 'csa_upload', 'csa_box');
+  return array('color', 'comment', 'help', 'menu', 'taxonomy', 'dblog', 'mediamosa_sdk', 'mediamosa_connector', 'csa', 'csa_collection', 'csa_upload', 'csa_box');
 }
 
 /**
