@@ -36,7 +36,6 @@
 }
 
 #csaSelectFiles {
-  clear: left;
 	float: left;
 	width: 44px;
 	padding-top: 8px;
@@ -51,7 +50,11 @@
 	margin-top: 0pt;
 }
 
-#csaCancelBut{
+.csa-select-files {
+	clear:both;
+}
+
+#csaCancelBut {
 	float: right;
 }
 
@@ -59,27 +62,25 @@
   float: left;
 }
 
+#edit-radio-collection-enter, #edit-radio-collection-select,
+#edit-enter-collection-wrapper, #edit-select-collection-wrapper {
+	float: left;
+}
+
 /* Radio button selection for collection on upload page */
 #edit-radio-collection-enter-wrapper label.option input.form-radio,
 #edit-radio-collection-select-wrapper label.option input.form-radio {
- float: left;
  margin: 0px 1px 0px 14px;
  padding: 0px;
- display: block;
 }
 #edit-radio-collection-enter-wrapper label.option,
 #edit-radio-collection-select-wrapper label.option  {
- float: left;
  margin: 10px 1em;
 }
 #edit-radio-collection-enter-wrapper label.option input.form-text {
   margin: 0;
   padding: 5px;
 }
-
-#csa-upload-form .form-item .form-item .form-item {
- clear: none;
-}
-#csa-upload-form .form-item {
- clear: left;
+#edit-radio-collection-enter-wrapper, #edit-radio-collection-select-wrapper {
+	clear: both;
 }

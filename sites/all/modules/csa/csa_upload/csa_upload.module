@@ -214,7 +214,7 @@ function csa_upload_swf_form() {
   );
   $form['csa_swf_form']['upload_buttons']['action']['radio_collection'] = array(
     '#type' => 'radios',
-    '#id' => 'csaRadio-form-item',
+    '#id' => 'csa-radio-form-item',
     '#options' => $collection_enter,
     '#title' => t('Enter or select the upload collection'),
     '#required' => TRUE,
@@ -236,7 +236,7 @@ function csa_upload_swf_form() {
   );
 
   $form['csa_swf_form']['select_files'] = array(
-    '#prefix' => '<div>',
+    '#prefix' => '<div class="csa-select-files">',
     '#suffix' => '</div>',
   );
   // Drupal 6 Bug: can't use "normal" buttons, only submit buttons are possible => workaround
