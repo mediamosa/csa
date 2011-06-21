@@ -200,7 +200,7 @@ function _csa_box_batch_finished($success, $results, $operations) {
   if ($success) {
     $success_message = $results['options']['success_message'];
     $success_message = format_plural($results['count'], $success_message['singular'], $success_message['plural']);
-    $success_message = t('Batch completed sucessfully. !success_message', array('!success_message' => $success_message));
+    $success_message = t('Batch completed. !success_message', array('!success_message' => $success_message));
     drupal_set_message($success_message);
     _csa_log_info($success_message);
   }
