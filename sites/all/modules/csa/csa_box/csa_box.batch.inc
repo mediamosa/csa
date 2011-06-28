@@ -235,7 +235,7 @@ function _csa_box_batch_finished($success, $results, $operations) {
 function _csa_box_batch_delete($type) {
 
   _csa_box_batch(
-    url('csa/' . $type),
+    'csa/' . $type,
     array(
       'function_name' => '_csa_box_batch_delete_asset',
       'type' => $type,
@@ -291,7 +291,7 @@ function _csa_box_batch_publish() {
   _csa_prefs_access_precheck_rules();
 
   _csa_box_batch(
-    url('csa/unpublished'),
+    'csa/unpublished',
     array(
       'function_name' => '_csa_box_batch_publish_asset',
       'type' => CSA_BOX_TYPE_UNPUBLISHED,
@@ -360,7 +360,7 @@ function _csa_box_batch_unpublish() {
   global $user;
 
   _csa_box_batch(
-    url('csa/published'),
+    'csa/published',
     array(
       'function_name' => '_csa_box_batch_unpublish_asset',
       'type' => CSA_BOX_TYPE_PUBLISHED,
@@ -416,7 +416,7 @@ function _csa_box_batch_common_metadata($type, $metadata) {
   global $user;
 
   _csa_box_batch(
-    url('csa/' . $type),
+    'csa/' . $type,
     array(
       'function_name' => '_csa_box_batch_common_metadata_asset',
       'type' => $type,
@@ -469,7 +469,7 @@ function _csa_box_batch_transcode($type, $profile_ids, $transcode_replace) {
   global $user;
 
   _csa_box_batch(
-    url('csa/' . $type),
+    'csa/' . $type,
     array(
       'function_name' => '_csa_box_batch_transcode_asset',
       'type' => $type,
@@ -658,7 +658,7 @@ function _csa_box_batch_move_into_collection($type, $coll_id) {
   $name = _csa_collection_get_title($collection);
 
   _csa_box_batch(
-    url('csa/' . $type),
+    'csa/' . $type,
     array(
       'function_name' => '_csa_box_batch_move_asset_into_collection',
       'type' => $type,
@@ -721,7 +721,7 @@ function _csa_box_batch_remove_from_collection($type, $coll_id) {
   $name = _csa_collection_get_title($collection);
 
   _csa_box_batch(
-    url('csa/' . $type),
+    'csa/' . $type,
     array(
       'function_name' => '_csa_box_batch_remove_asset_from_collection',
       'type' => $type,
@@ -786,7 +786,7 @@ function _csa_box_batch_generate_still($type, $still_options) {
   );
 
   _csa_box_batch(
-    url('csa/' . $type),
+    'csa/' . $type,
     array(
       'function_name' => '_csa_box_batch_generate_still_asset',
       'type' => $type,
@@ -866,7 +866,7 @@ function _csa_box_batch_generate_still_asset(&$context, $type, $asset_id) {
 function _csa_box_batch_access_rules($type, $access) {
 
   _csa_box_batch(
-    url('csa/' . $type),
+    'csa/' . $type,
     array(
       'function_name' => '_csa_box_batch_access_rules_asset',
       'type' => $type,
