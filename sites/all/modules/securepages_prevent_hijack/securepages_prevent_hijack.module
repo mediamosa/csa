@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Prevents hijacked session from accessing pages protected by the securepages module.
@@ -25,16 +26,11 @@ function securepages_prevent_hijack_init() {
       t('Session hijack attempt detected for user %user!',
       array('%user' => $user->name)));
 
-      menu_set_active_item('');
-      drupal_set_header('HTTP/1.1 403 Forbidden');
-      drupal_set_title(t('Access denied by Secure Pages module'));
-      $return = t('<p> The Secure Pages module has detected an invalid '.
-       'session access attempt. Please <a href="!url">log in again</a>.</p>',
-      array('!url' => url('user/login', array('query' => array('destination' => $path)))));
-      print theme('page', $return);
-      module_invoke_all('exit', $url);
       session_destroy();
-      exit;
+      $user = drupal_anonymous_user();
+      sess_regenerate();
+      drupal_access_denied();
+      exit();
     }
   }
 }
@@ -81,7 +77,9 @@ function _securepages_prevent_hijack_cookie() {
  * Implementation of hook_form_alter().
  */
 function securepages_prevent_hijack_form_alter(&$form, &$form_state, $form_id) {
-
+  if (!variable_get('securepages_enable', 0)) {
+    return;
+  }
   // Refresh the cookie whenever the settings page is submitted.
   if ($form['#id'] == 'securepages-settings') {
     $form['#submit'][] = '_securepages_prevent_hijack_cookie';
@@ -94,12 +92,10 @@ function securepages_prevent_hijack_form_alter(&$form, &$form_state, $form_id) {
 
     $base_path = base_path();
     $path = (!strncmp($url['path'], $base_path, drupal_strlen($base_path)) ? drupal_substr($url['path'], drupal_strlen($base_path)) : $url['path']);
-    $form['#action'] = securepages_url(
-      $path,
-      array(
-        'secure' => TRUE,
-        'query' => $url['query'],
-      )
-    );
+    $options = array('absolute' => TRUE, 'base_url' => securepages_baseurl(TRUE));
+    if (isset($url['query'])) {
+      $options['query'] = $url['query'];
+    }
+    $form['#action'] = url($path, $options);
   }
 }

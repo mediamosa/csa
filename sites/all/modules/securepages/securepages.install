@@ -12,21 +12,15 @@ function securepages_enable() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function securepages_uninstall() {
   variable_del('securepages_enable');
   variable_del('securepages_switch');
   variable_del('securepages_secure');
   variable_del('securepages_pages');
+  variable_del('securepages_basepath');
+  variable_del('securepages_basepath_ssl');
   variable_del('securepages_ignore');
-}
-
-/**
- * Implementation of hook_update_n().
- */
-function securepages_update_1() {
-  variable_set('securepages_enable', 1);
-
-  return array();
+  variable_del('securepages_roles');
 }

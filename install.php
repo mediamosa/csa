@@ -130,9 +130,25 @@ function install_main() {
     if (!$verify) {
       install_change_settings($profile, $install_locale);
     }
+    // The default lock implementation uses a database table,
+    // so we cannot use it for install, but we still need
+    // the API functions available.
+    require_once './includes/lock-install.inc';
+    $conf['lock_inc'] = './includes/lock-install.inc';
+    lock_init();
 
     // Install system.module.
     drupal_install_system();
+
+    // Ensure that all of Drupal's standard directories have appropriate
+    // .htaccess files. These directories will have already been created by
+    // this point in the installer, since Drupal creates them during the
+    // install_check_requirements() task. Note that we cannot create them any
+    // earlier than this, since the code below relies on system.module in order
+    // to work.
+    file_create_htaccess(file_directory_path());
+    file_create_htaccess(file_directory_temp());
+
     // Save the list of other modules to install for the 'profile-install'
     // task. variable_set() can be used now that system.module is installed
     // and drupal is bootstrapped.

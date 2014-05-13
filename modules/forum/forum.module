@@ -165,7 +165,7 @@ function forum_init() {
 /**
  * Implementation of hook_nodeapi().
  */
-function forum_nodeapi(&$node, $op, $teaser, $page) {
+function forum_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   // We are going to return if $node->type is not one of the node
   // types assigned to the forum vocabulary.  If forum_nav_vocabulary
   // is undefined or the vocabulary does not exist, it clearly cannot
@@ -690,7 +690,7 @@ function template_preprocess_forums(&$variables) {
       // Check if the current user has the 'create' permission for this node type.
       if (node_access('create', $type)) {
         // Fetch the "General" name of the content type;
-        // Push the link with title and url to the array.
+        // Push the link with title and URL to the array.
         $forum_types[$type] = array('title' => t('Post new @node_type', array('@node_type' => node_get_types('name', $type))), 'href' => 'node/add/'. str_replace('_', '-', $type) .'/'. $variables['tid']);
       }
     }

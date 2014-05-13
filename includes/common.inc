@@ -31,6 +31,12 @@ if (!defined('E_DEPRECATED')) {
 }
 
 /**
+ * Error code indicating that the request made by drupal_http_request() exceeded
+ * the specified timeout.
+ */
+define('HTTP_REQUEST_TIMEOUT', -1);
+
+/**
  * Set content for a specified region.
  *
  * @param $region
@@ -170,7 +176,7 @@ function drupal_final_markup($content) {
  * Add a feed URL for the current page.
  *
  * @param $url
- *   A url for the feed.
+ *   A URL for the feed.
  * @param $title
  *   The title of the feed.
  */
@@ -290,13 +296,16 @@ function drupal_get_destination() {
  * statement in your menu callback.
  *
  * @param $path
- *   A Drupal path or a full URL.
+ *   (optional) A Drupal path or a full URL, which will be passed to url() to
+ *   compute the redirect for the URL.
  * @param $query
- *   A query string component, if any.
+ *   (optional) A URL-encoded query string to append to the link, or an array of
+ *   query key/value-pairs without any URL-encoding. Passed to url().
  * @param $fragment
- *   A destination fragment identifier (named anchor).
+ *   (optional) A destination fragment identifier (named anchor).
  * @param $http_response_code
- *   Valid values for an actual "goto" as per RFC 2616 section 10.3 are:
+ *   (optional) The HTTP status code to use for the redirection, defaults to
+ *   302. Valid values for an actual "goto" as per RFC 2616 section 10.3 are:
  *   - 301 Moved Permanently (the recommended value for most redirects)
  *   - 302 Found (default in Drupal and PHP, sometimes used for spamming search
  *         engines)
@@ -354,7 +363,7 @@ function drupal_goto($path = '', $query = NULL, $fragment = NULL, $http_response
  */
 function drupal_site_offline() {
   drupal_maintenance_theme();
-  drupal_set_header('HTTP/1.1 503 Service unavailable');
+  drupal_set_header($_SERVER['SERVER_PROTOCOL'] .' 503 Service unavailable');
   drupal_set_title(t('Site off-line'));
   print theme('maintenance_page', filter_xss_admin(variable_get('site_offline_message',
     t('@site is currently under maintenance. We should be back shortly. Thank you for your patience.', array('@site' => variable_get('site_name', 'Drupal'))))));
@@ -364,7 +373,7 @@ function drupal_site_offline() {
  * Generates a 404 error if the request can not be handled.
  */
 function drupal_not_found() {
-  drupal_set_header('HTTP/1.1 404 Not Found');
+  drupal_set_header($_SERVER['SERVER_PROTOCOL'] .' 404 Not Found');
 
   watchdog('page not found', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
 
@@ -394,7 +403,7 @@ function drupal_not_found() {
  * Generates a 403 error if the request is not allowed.
  */
 function drupal_access_denied() {
-  drupal_set_header('HTTP/1.1 403 Forbidden');
+  drupal_set_header($_SERVER['SERVER_PROTOCOL'] .' 403 Forbidden');
 
   watchdog('access denied', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
 
@@ -435,11 +444,15 @@ function drupal_access_denied() {
  * @param $retry
  *   An integer representing how many times to retry the request in case of a
  *   redirect.
+ * @param $timeout
+ *   A float representing the maximum number of seconds the function call may
+ *   take. The default is 30 seconds. If a timeout occurs, the error code is set
+ *   to the HTTP_REQUEST_TIMEOUT constant.
  * @return
  *   An object containing the HTTP request headers, response code, protocol,
  *   status message, headers, data and redirect status.
  */
-function drupal_http_request($url, $headers = array(), $method = 'GET', $data = NULL, $retry = 3) {
+function drupal_http_request($url, $headers = array(), $method = 'GET', $data = NULL, $retry = 3, $timeout = 30.0) {
   global $db_prefix;
 
   $result = new stdClass();
@@ -459,18 +472,20 @@ function drupal_http_request($url, $headers = array(), $method = 'GET', $data = 
     return $result;
   }
 
+  timer_start(__FUNCTION__);
+
   switch ($uri['scheme']) {
     case 'http':
     case 'feed':
       $port = isset($uri['port']) ? $uri['port'] : 80;
       $host = $uri['host'] . ($port != 80 ? ':'. $port : '');
-      $fp = @fsockopen($uri['host'], $port, $errno, $errstr, 15);
+      $fp = @fsockopen($uri['host'], $port, $errno, $errstr, $timeout);
       break;
     case 'https':
       // Note: Only works for PHP 4.3 compiled with OpenSSL.
       $port = isset($uri['port']) ? $uri['port'] : 443;
       $host = $uri['host'] . ($port != 443 ? ':'. $port : '');
-      $fp = @fsockopen('ssl://'. $uri['host'], $port, $errno, $errstr, 20);
+      $fp = @fsockopen('ssl://'. $uri['host'], $port, $errno, $errstr, $timeout);
       break;
     default:
       $result->error = 'invalid schema '. $uri['scheme'];
@@ -518,7 +533,7 @@ function drupal_http_request($url, $headers = array(), $method = 'GET', $data = 
     $defaults['Content-Length'] = 'Content-Length: '. $content_length;
   }
 
-  // If the server url has a user then attempt to use basic authentication
+  // If the server URL has a user then attempt to use basic authentication
   if (isset($uri['user'])) {
     $defaults['Authorization'] = 'Authorization: Basic '. base64_encode($uri['user'] . (!empty($uri['pass']) ? ":". $uri['pass'] : ''));
   }
@@ -544,17 +559,33 @@ function drupal_http_request($url, $headers = array(), $method = 'GET', $data = 
 
   $result->request = $request;
 
-  fwrite($fp, $request);
+  // Calculate how much time is left of the original timeout value.
+  $time_left = $timeout - timer_read(__FUNCTION__) / 1000;
+  if ($time_left > 0) {
+    stream_set_timeout($fp, floor($time_left), floor(1000000 * fmod($time_left, 1)));
+    fwrite($fp, $request);
+  }
 
   // Fetch response.
   $response = '';
-  while (!feof($fp) && $chunk = fread($fp, 1024)) {
+  while (!feof($fp)) {
+    // Calculate how much time is left of the original timeout value.
+    $time_left = $timeout - timer_read(__FUNCTION__) / 1000;
+    if ($time_left <= 0) {
+      $result->code = HTTP_REQUEST_TIMEOUT;
+      $result->error = 'request timed out';
+      return $result;
+    }
+    stream_set_timeout($fp, floor($time_left), floor(1000000 * fmod($time_left, 1)));
+    $chunk = fread($fp, 1024);
     $response .= $chunk;
   }
   fclose($fp);
 
-  // Parse response.
-  list($split, $result->data) = explode("\r\n\r\n", $response, 2);
+  // Parse response headers from the response body.
+  // Be tolerant of malformed HTTP responses that separate header and body with
+  // \n\n or \r\r instead of \r\n\r\n.  See http://drupal.org/node/183435
+  list($split, $result->data) = preg_split("/\r\n\r\n|\n\n|\r\r/", $response, 2);
   $split = preg_split("/\r\n|\n|\r/", $split);
 
   list($protocol, $code, $status_message) = explode(' ', trim(array_shift($split)), 3);
@@ -597,9 +628,13 @@ function drupal_http_request($url, $headers = array(), $method = 'GET', $data = 
     case 302: // Moved temporarily
     case 307: // Moved temporarily
       $location = $result->headers['Location'];
-
-      if ($retry) {
-        $result = drupal_http_request($result->headers['Location'], $headers, $method, $data, --$retry);
+      $timeout -= timer_read(__FUNCTION__) / 1000;
+      if ($timeout <= 0) {
+        $result->code = HTTP_REQUEST_TIMEOUT;
+        $result->error = 'request timed out';
+      }
+      elseif ($retry) {
+        $result = drupal_http_request($result->headers['Location'], $headers, $method, $data, --$retry, $timeout);
         $result->redirect_code = $result->code;
       }
       $result->redirect_url = $location;
@@ -652,7 +687,9 @@ function drupal_error_handler($errno, $message, $filename, $line, $context) {
       }
     }
 
-    $entry = check_plain($types[$errno]) .': '. filter_xss($message) .' in '. check_plain($filename) .' on line '. check_plain($line) .'.';
+    // Try to use filter_xss(). If it's too early in the bootstrap process for
+    // filter_xss() to be loaded, use check_plain() instead.
+    $entry = check_plain($types[$errno]) .': '. (function_exists('filter_xss') ? filter_xss($message) : check_plain($message)) .' in '. check_plain($filename) .' on line '. check_plain($line) .'.';
 
     // Force display of error messages in update.php.
     if (variable_get('error_level', 1) == 1 || strstr($_SERVER['SCRIPT_NAME'], 'update.php')) {
@@ -954,7 +991,7 @@ function t($string, $args = array(), $langcode = NULL) {
 /**
  * Verifies the syntax of the given e-mail address.
  *
- * See RFC 2822 for details.
+ * See @link http://tools.ietf.org/html/rfc5322 RFC 5322 @endlink for details.
  *
  * @param $mail
  *   A string containing an e-mail address.
@@ -1388,8 +1425,9 @@ function format_date($timestamp, $type = 'medium', $format = '', $timezone = NUL
  * alternative than url().
  *
  * @param $path
- *   The internal path or external URL being linked to, such as "node/34" or
- *   "http://example.com/foo". A few notes:
+ *   (optional) The internal path or external URL being linked to, such as
+ *   "node/34" or "http://example.com/foo". The default value is equivalent to
+ *   passing in '<front>'. A few notes:
  *   - If you provide a full URL, it will be considered an external URL.
  *   - If you provide only the path (e.g. "node/34"), it will be
  *     considered an internal link. In this case, it should be a system URL,
@@ -1405,7 +1443,8 @@ function format_date($timestamp, $type = 'medium', $format = '', $timezone = NUL
  *     include them in $path, or use $options['query'] to let this function
  *     URL encode them.
  * @param $options
- *   An associative array of additional options, with the following elements:
+ *   (optional) An associative array of additional options, with the following
+ *   elements:
  *   - 'query': A URL-encoded query string to append to the link, or an array of
  *     query key/value-pairs without any URL-encoding.
  *   - 'fragment': A fragment identifier (named anchor) to append to the URL.
@@ -1556,6 +1595,14 @@ function drupal_attributes($attributes = array()) {
  * attribute to links that point to the current page (for theming), so all
  * internal links output by modules should be generated by this function if
  * possible.
+ *
+ * However, for links enclosed in translatable text you should use t() and
+ * embed the HTML anchor tag directly in the translated string. For example:
+ * @code
+ * t('Visit the <a href="@url">settings</a> page', array('@url' => url('admin')));
+ * @endcode
+ * This keeps the context of the link title ('settings' in the example) for
+ * translators.
  *
  * @param $text
  *   The link text for the anchor tag.
@@ -1788,8 +1835,11 @@ function drupal_add_link($attributes) {
  *
  *   Typical candidates for caching are for example styles for nodes across
  *   the site, or used in the theme.
+ *
  * @return
  *   An array of CSS files.
+ *
+ * @see drupal_get_css()
  */
 function drupal_add_css($path = NULL, $type = 'module', $media = 'all', $preprocess = TRUE) {
   static $css = array();
@@ -1835,8 +1885,11 @@ function drupal_add_css($path = NULL, $type = 'module', $media = 'all', $preproc
  * @param $css
  *   (optional) An array of CSS files. If no array is provided, the default
  *   stylesheets array is used instead.
+ *
  * @return
  *   A string of XHTML CSS tags.
+ *
+ * @see drupal_add_css()
  */
 function drupal_get_css($css = NULL) {
   $output = '';
@@ -2533,8 +2586,8 @@ function drupal_to_js($var) {
  *   (optional) If set, the variable will be converted to JSON and output.
  */
 function drupal_json($var = NULL) {
-  // We are returning JavaScript, so tell the browser.
-  drupal_set_header('Content-Type: text/javascript; charset=utf-8');
+  // We are returning JSON, so tell the browser.
+  drupal_set_header('Content-Type: application/json');
 
   if (isset($var)) {
     echo drupal_to_js($var);
@@ -2581,7 +2634,7 @@ function drupal_urlencode($text) {
  */
 function drupal_get_private_key() {
   if (!($key = variable_get('drupal_private_key', 0))) {
-    $key = md5(uniqid(mt_rand(), true)) . md5(uniqid(mt_rand(), true));
+    $key = drupal_random_key();
     variable_set('drupal_private_key', $key);
   }
   return $key;
@@ -2613,7 +2666,7 @@ function drupal_get_token($value = '') {
  */
 function drupal_valid_token($token, $value = '', $skip_anonymous = FALSE) {
   global $user;
-  return (($skip_anonymous && $user->uid == 0) || ($token == md5(session_id() . $value . variable_get('drupal_private_key', ''))));
+  return (($skip_anonymous && $user->uid == 0) || ($token === md5(session_id() . $value . variable_get('drupal_private_key', ''))));
 }
 
 /**
@@ -2671,6 +2724,10 @@ function _drupal_bootstrap_full() {
   fix_gpc_magic();
   // Load all enabled modules
   module_load_all();
+  // Ensure mt_rand is reseeded, to prevent random values from one page load
+  // being exploited to predict random values in subsequent page loads.
+  $seed = unpack("L", drupal_random_bytes(4));
+  mt_srand($seed[1]);
   // Let all modules take action before menu system handles the request
   // We do not want this while running update.php.
   if (!defined('MAINTENANCE_MODE') || MAINTENANCE_MODE != 'update') {
@@ -3784,7 +3841,7 @@ function drupal_flush_all_caches() {
  * Changes the character added to all css/js files as dummy query-string,
  * so that all browsers are forced to reload fresh files. We keep
  * 20 characters history (FIFO) to avoid repeats, but only the first
- * (newest) character is actually used on urls, to keep them short.
+ * (newest) character is actually used on URLs, to keep them short.
  * This is also called from update.php.
  */
 function _drupal_flush_css_js() {

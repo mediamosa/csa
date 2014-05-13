@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Simpletests for securepages_prevent_hijack.
@@ -29,6 +30,18 @@ class SecurepagesPreventHijackTestCase extends DrupalWebTestCase {
    * Make sure the login forms are using an SSL action.
    */
   function testSecurepagesPreventHijackLoginAction() {
+    // Test that form_alter() is disabled when securepages is off.
+    variable_set('securepages_enable', FALSE);
+    $this->drupalGet('user/login');
+    $this->assertNoPattern('/action="https.*id="user-login"/',
+      t('Make sure login page action is secured.'));
+
+    $this->drupalGet('');
+    $this->assertNoPattern('/action="https.*id="user-login-form"/',
+      t('Make sure login page action is secured.'));
+
+    // Enable securepages and re-test.
+    variable_set('securepages_enable', TRUE);
     $this->drupalGet('user/login');
     $this->assertPattern('/action="https.*id="user-login"/',
       t('Make sure login page action is secured.'));

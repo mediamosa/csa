@@ -106,10 +106,6 @@ DirectoryIndex index.php
   # uncomment the following line:
   # RewriteBase /
 
-  # HTTPS.
-  #RewriteCond %{SERVER_PORT} 80
-  #RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R,L]
-
   # Rewrite URLs of the form 'x' to the form 'index.php?q=x'.
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
