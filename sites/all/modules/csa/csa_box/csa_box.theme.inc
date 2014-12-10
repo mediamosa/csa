@@ -31,6 +31,9 @@
  *
  * @ingroup themeable
  */
+
+define('CSA_BOX_TYPE_UNPUBLISHED', 'unpublished');
+
 function theme_csa_box_list($form) {
 
   // CSS.
@@ -125,7 +128,8 @@ function theme_csa_box_list($form) {
     // Find the first original mediafile.
     if (!isset($asset['mediafile_original'])) {
       _csa_log_critical("Asset with ID '!asset_id' does not have an original.", array('!asset_id' => $asset_id));
-      continue;
+      if(arg(1) != CSA_BOX_TYPE_UNPUBLISHED)
+        continue;
     }
 
     // Find the collection(s).
