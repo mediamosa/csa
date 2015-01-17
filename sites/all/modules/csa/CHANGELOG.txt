@@ -20,6 +20,17 @@
  * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
  */
 
+CSA v1.2.0 (build 170)
+----------------------
+- Upgraded Drupal to 6.33.
+- Fixed notice on missing timezone when timezone isn't set in phg.ini.
+- Updated ACL calls to support 3.x of MediaMosa. This version now requires
+  MediaMosa 3.x.
+- Fixed Publish and unpublished. For this fix, mediamosa 3.6 or higher is
+  required.
+- Puiblish and unpublish now longer adds or removes shared assets from apps the
+  user can not change because of its acl app prefs.
+
 CSA v1.1.0 (build 164)
 ----------------------
 - Updated CSA to latest version of SDK. When upgrading to 1.1, make sure you
@@ -51,7 +62,7 @@ CSA v1.0.7 (build 155)
 
 CSA v1.0.6 (build 152)
 ----------------------
-- Fixed minor typo in still batch creation (Start seconds instead of End 
+- Fixed minor typo in still batch creation (Start seconds instead of End
   seconds).
 
 CSA v1.0.5 (build 152)
@@ -72,22 +83,22 @@ CSA v1.0.3 (build 150)
 - Upgraded to Drupal 6.20.
 - Added search page.
 - Publication of mediafiles (or collections) will generate an error when no
-  publication rules are setup for application. Previously domain and realm 
+  publication rules are setup for application. Previously domain and realm
   setting still allowed publication, but nothing would happen.
 - Added search page.
 - Fixed: Still generation after upload did not work. Seems http_build_query has
   '&amp;' as default in drupal 6 instead of '&'.
 - Made search tab on collection linked to search page with selected collection
-  as search parameter. 
+  as search parameter.
 - Default metadata with that contains tag '=filename' can now be anywhere in the
-  default value; The tag '=filename' in default metadata will result into The 
-  filename is 'foo.mp4', when filename is foo.mp4. 
+  default value; The tag '=filename' in default metadata will result into The
+  filename is 'foo.mp4', when filename is foo.mp4.
 - Fixed: Transcoding after upload was broken.
 
 CSA v1.0.2 (build 141)
 ----------------------
-- Added missing 'pages' field to csa_default profile block creation. Causing 
-  notices on mariadb. 
+- Added missing 'pages' field to csa_default profile block creation. Causing
+  notices on mariadb.
 
 CSA v1.0.1 RC2 (build 140)
 --------------------------
@@ -130,10 +141,10 @@ CSA v0.6
 
 CSA v0.5
 --------
-- Flipped applications with domain/realm section in access rules section in 
+- Flipped applications with domain/realm section in access rules section in
   prefs.
 - Fixed save problem on CSA mediamosa user connection.
-- 
+-
 
 CSA v0.4
 --------
@@ -154,7 +165,7 @@ CSA v0.1 Build 78
 
 Ticket related (see cla.trac.madcap.nl)
 - Added rough version of the multi-file upload using the flash plugin swfupload.
-  (Ticket 
+  (Ticket
 - Converted most code of PA to CSA.
 - Convert small parts of WLE to CSA.
 - Added HTTPS (Ticket 8).
