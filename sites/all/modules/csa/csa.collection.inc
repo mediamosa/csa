@@ -96,8 +96,8 @@ function _csa_collection_get_acl($coll_id, $user_id, $options = array()) {
 
   if (!empty($acl['items']['item'])) {
     foreach ($acl['items']['item'] as $item)  {
-      if (!empty($item['aut_app'])) {
-        $acl_rules['aut_app'][] = $item['aut_app'];
+      if (!empty($item['acl_app'])) {
+        $acl_rules['acl_app'][] = $item['acl_app'];
       }
     }
   }
@@ -116,7 +116,7 @@ function _csa_collection_is_published($coll_id, $user_id) {
   $collection_acl = _csa_collection_get_acl($coll_id, $user_id);
 
   // Any aut_apps?
-  return !empty($collection_acl['aut_app']);
+  return !empty($collection_acl['acl_app']);
 }
 
 /**
@@ -607,7 +607,7 @@ function _csa_collection_publish($coll_id, $user_id, $options = array()) {
     'user_id' => $user_id,
     'fatal' => $options['fatal'],
     'data' => array(
-      'aut_app' => array_keys($user->csa_access_rules['applications']),
+      'acl_app' => array_keys($user->csa_access_rules['applications']),
     ),
   );
 
@@ -649,7 +649,7 @@ function _csa_collection_unpublish($coll_id, $user_id, $options = array()) {
     'user_id' => $user_id,
     'fatal' => $options['fatal'],
     'data' => array(
-      'aut_app' => array(),
+      'acl_app' => array(),
     ),
   );
 

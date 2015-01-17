@@ -274,8 +274,9 @@ function _csa_iso8601date_to_unix($iso8601_date_str) {
   // Parse the date.
   $date = date_parse($iso8601_date_str);
 
-  // Get current timezone
-  $tz = date_default_timezone_get();
+  // Get current timezone. Using @ to ignore warning when timezone isn't set in
+  // php.ini.
+  $tz = @date_default_timezone_get();
 
   // Set to GMT/UTC so we can convert without timezone problems (take as-is).
   date_default_timezone_set('UTC');

@@ -484,7 +484,7 @@ function _csa_asset_set_acl($asset_id, $user_id, $options = array()) {
   );
 
   $request_options = array();
-  foreach (array('aut_app', 'aut_domain', 'aut_realm', 'aut_user', 'aut_group') as $subject) {
+  foreach (array('acl_app', 'acl_domain', 'acl_realm', 'acl_user', 'acl_group') as $subject) {
     if (!empty($options[$subject])) {
       $request_options['data'][$subject] = $options[$subject];
     }

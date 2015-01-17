@@ -301,9 +301,9 @@ function _csa_box_batch_publish() {
       ),
       'failure_message' => 'Failed to publish @failed assets of the @total assets.',
       // Publish settings.
-      'aut_app' => array_keys($user->csa_access_rules['applications']),
-      'aut_domain' => $user->csa_access_rules['domains'],
-      'aut_realm' => $user->csa_access_rules['realms'],
+      'acl_app' => array_keys($user->csa_access_rules['applications']),
+      'acl_domain' => $user->csa_access_rules['domains'],
+      'acl_realm' => $user->csa_access_rules['realms'],
     ),
     array(
       'title' => t('Publishing assets'),
@@ -334,9 +334,9 @@ function _csa_box_batch_publish_asset(&$context, $type, $asset_id) {
 
     // All ok, now publish.
     $options = array(
-      'aut_app' => $context['results']['options']['aut_app'],
-      'aut_domain' => $context['results']['options']['aut_domain'],
-      'aut_realm' => $context['results']['options']['aut_realm'],
+      'acl_app' => $context['results']['options']['acl_app'],
+      'acl_domain' => $context['results']['options']['acl_domain'],
+      'acl_realm' => $context['results']['options']['acl_realm'],
       'fatal' => TRUE,
     );
 
@@ -370,9 +370,9 @@ function _csa_box_batch_unpublish() {
       ),
       'failure_message' => 'Failed to unpublish @failed assets of the @total assets.',
       // Publish settings.
-      'aut_app' => array_keys($user->csa_access_rules['applications']),
-      'aut_domain' => $user->csa_access_rules['domains'],
-      'aut_realm' => $user->csa_access_rules['realms'],
+      'acl_app' => array_keys($user->csa_access_rules['applications']),
+      'acl_domain' => $user->csa_access_rules['domains'],
+      'acl_realm' => $user->csa_access_rules['realms'],
     ),
     array(
       'title' => t('Unpublishing assets'),
@@ -876,9 +876,9 @@ function _csa_box_batch_access_rules($type, $access) {
       ),
       'failure_message' => "Failed to add access rules to @failed assets of the @total assets.",
       // ACL settings.
-      'aut_app' => array(), //array_keys($user->csa_access_rules['applications']),
-      'aut_domain' => $access['domains'],
-      'aut_realm' => $access['realms'],
+      'acl_app' => array(), //array_keys($user->csa_access_rules['applications']),
+      'acl_domain' => $access['domains'],
+      'acl_realm' => $access['realms'],
     ),
     array(
       'title' => t("Adding access rules"),
@@ -904,9 +904,9 @@ function _csa_box_batch_access_rules_asset(&$context, $type, $asset_id) {
 
     // All ok, now publish.
     $options = array(
-      'aut_app' => $context['results']['options']['aut_app'],
-      'aut_domain' => $context['results']['options']['aut_domain'],
-      'aut_realm' => $context['results']['options']['aut_realm'],
+      'acl_app' => $context['results']['options']['acl_app'],
+      'acl_domain' => $context['results']['options']['acl_domain'],
+      'acl_realm' => $context['results']['options']['acl_realm'],
       'fatal' => TRUE,
     );
 
@@ -916,11 +916,11 @@ function _csa_box_batch_access_rules_asset(&$context, $type, $asset_id) {
       // Get ACL.
       $rights = _csa_asset_mediafile_get_acl($mediafile['mediafile_id'], $mediafile['owner_id']);
 
-      $options['aut_app'] = array();
+      $options['acl_app'] = array();
 
       foreach ($rights as $right) {
-        if (!empty($right['aut_app'])) {
-          $options['aut_app'][] = $right['aut_app'];
+        if (!empty($right['acl_app'])) {
+          $options['acl_app'][] = $right['acl_app'];
         }
       }
 

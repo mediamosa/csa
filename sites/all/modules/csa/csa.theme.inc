@@ -421,14 +421,14 @@ function theme_csa_asset_mediafile_access($asset, $mediafile, $access, $offset =
 
   $rights = array();
   foreach ($access as $right) {
-    if (!empty($right['aut_domain'])) {
-      $rights['domains'][] = $right['aut_domain'];
+    if (!empty($right['acl_domain'])) {
+      $rights['domains'][] = $right['acl_domain'];
     }
-    if (!empty($right['aut_realm'])) {
-      $rights['realms'][] = $right['aut_realm'];
+    if (!empty($right['acl_realm'])) {
+      $rights['realms'][] = $right['acl_realm'];
     }
-    if (!empty($right['aut_app'])) {
-      $rights['apps'][] = $right['aut_app'];
+    if (!empty($right['acl_app'])) {
+      $rights['apps'][] = $right['acl_app'];
     }
   }
 

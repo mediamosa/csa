@@ -89,7 +89,7 @@ function _csa_asset_mediafile_get_acl($mediafile_id, $user_id) {
   );
 
   try {
-    // Set acl rights.
+    // Get acl rights.
     $response = _csa_mediamosa_request('mediafile/' . rawurlencode($mediafile_id) . '/acl', $options);
   }
   catch (Exception $e) {
@@ -107,16 +107,50 @@ function _csa_asset_mediafile_get_acl($mediafile_id, $user_id) {
 }
 
 /**
+ * Get the ACL from the mediafile that we can not change.
+ *
+ * @param string $mediafile_id
+ *   The mediafile ID.
+ * @param string $user_id
+ *   The owner.
+ */
+function _csa_asset_mediafile_get_other_acl($mediafile_id, $user_id) {
+  global $user;
+
+  $my_acl_app = array();
+  if (!empty($user->csa_access_rules['applications'])) {
+    $my_acl_app = array_keys($user->csa_access_rules['applications']);
+  }
+
+  // Get current ACL on mediafile.
+  $rights = _csa_asset_mediafile_get_acl($mediafile_id, $user_id);
+
+  $acl_app = array();
+  foreach ($rights as $right) {
+    if (!empty($right['acl_app'])) {
+      // Copy apps that are not changable by user.
+      if (!in_array($right['acl_app'], $my_acl_app)) {
+        $acl_app[] = (int) $right['acl_app'];
+      }
+    }
+  }
+
+  return array('acl_app' => array_unique($acl_app));
+}
+
+/**
  * Set ACL rights on mediafile.
  *
  * @param string $mediafile_id
+ *   The mediafile ID.
  * @param string $user_id
+ *   The owner of the asset.
  * @param array $options
- *  - aut_app
- *  - aut_domain
- *  - aut_realm
- *  - aut_group
- *  - aut_user
+ *  - acl_app
+ *  - acl_domain
+ *  - acl_realm
+ *  - acl_group
+ *  - acl_user
  *  - replace (default TRUE)
  *
  *  @see REST call /mediafile/$asset_id/acl
@@ -126,16 +160,49 @@ function _csa_asset_mediafile_set_acl($mediafile_id, $user_id, $options = array(
   // Set default.
   $options += array(
     'replace' => TRUE,
+    'when_empty_acl_do_delete' => FALSE,
   );
 
+  // If we $options['replace'], then we must only change our apps, not the
+  // others.
+  $acl_others = array();
+  if ($options['replace']) {
+    // Get the ACL on mediafile, minus what we can change.
+    $acl_others = _csa_asset_mediafile_get_other_acl($mediafile_id, $user_id);
+  }
+
   $data = array();
-  foreach (array('aut_app', 'aut_domain', 'aut_realm', 'aut_user', 'aut_group') as $subject) {
+  foreach (array('acl_app', 'acl_domain', 'acl_realm', 'acl_user', 'acl_group') as $subject) {
+    $data[$subject] = empty($acl_others[$subject]) ? array() : $acl_others[$subject];
     if (!empty($options[$subject])) {
-      $data[$subject] = $options[$subject];
+      $data[$subject] = array_unique(array_merge($data[$subject], $options[$subject]));
     }
   }
 
   if (empty($data)) {
+    if ($options['when_empty_acl_do_delete']) {
+      // Setup logging.
+      $message = 'Unable to remove ACL rights from mediafile with ID @mediafile_id';
+      $variables = array('@mediafile_id' => $mediafile_id);
+
+      $options = array(
+        'user_id' => $user_id,
+        'data' => $data,
+      );
+
+      try {
+        // Do REST call.
+        $response = _csa_mediamosa_request_post('mediafile/' . rawurlencode($mediafile_id) . '/acl/delete', $options);
+      }
+      catch (Exception $e) {
+        _csa_log_rest_response(FALSE, $message, $variables);
+        throw $e;
+      }
+
+      // Log it (if the request failed).
+      return _csa_log_rest_response($response, $message, $variables);
+    }
+
     throw new Exception('No access rules set for _csa_asset_mediafile_set_acl()');
   }
 
@@ -167,31 +234,14 @@ function _csa_asset_mediafile_set_acl($mediafile_id, $user_id, $options = array(
 /**
  * Remove all ACL from asset.
  *
- * @param string $asset_id
+ * @param string $mediafile_id
  * @param string $user_id
  *   Owner of asset.
  */
 function _csa_asset_mediafile_delete_acl($mediafile_id, $user_id) {
 
-  $options = array(
-    'user_id' => $user_id,
-  );
-
-  // Setup logging.
-  $message = 'Unable to remove ACL rights from mediafile with ID @mediafile_id';
-  $variables = array('@mediafile_id' => $mediafile_id);
-
-  try {
-    // Do REST call.
-    $response = _csa_mediamosa_request_post('mediafile/' . rawurlencode($mediafile_id) . '/acl/delete', $options);
-  }
-  catch (Exception $e) {
-    _csa_log_rest_response(FALSE, $message, $variables);
-    throw $e;
-  }
-
-  // Log it (if the request failed).
-  return _csa_log_rest_response($response, $message, $variables);
+  // This will remove all except the acl that is unchangeable.
+  _csa_asset_mediafile_set_acl($mediafile_id, $user_id, array('when_empty_acl_do_delete' => TRUE));
 }
 
 /**
@@ -648,11 +698,11 @@ function _csa_asset_mediafile_access_form(&$form_state, $mediafile_id) {
     $rights = _csa_asset_mediafile_get_acl($mediafile['mediafile_id'], $mediafile['owner_id']);
 
     foreach ($rights as $right) {
-      if (!empty($right['aut_domain'])) {
-        $form_state['storage']['access']['domains'][$right['aut_domain']] = $right['aut_domain'];
+      if (!empty($right['acl_domain'])) {
+        $form_state['storage']['access']['domains'][$right['acl_domain']] = $right['acl_domain'];
       }
-      if (!empty($right['aut_realm'])) {
-        $form_state['storage']['access']['realms'][$right['aut_realm']] = $right['aut_realm'];
+      if (!empty($right['acl_realm'])) {
+        $form_state['storage']['access']['realms'][$right['acl_realm']] = $right['acl_realm'];
       }
     }
   }
@@ -699,8 +749,8 @@ function _csa_asset_mediafile_access_form_submit($form, $form_state) {
     case t(CSA_SUBMIT_TEXT_ASSET_MEDIAFILE_SUBMIT_ACCESS):
 
       $rights = array(
-        'aut_domain' => empty($form_state['storage']['access']['domains']) ? array() : $form_state['storage']['access']['domains'],
-        'aut_realm' => empty($form_state['storage']['access']['realms']) ? array() : $form_state['storage']['access']['realms'],
+        'acl_domain' => empty($form_state['storage']['access']['domains']) ? array() : $form_state['storage']['access']['domains'],
+        'acl_realm' => empty($form_state['storage']['access']['realms']) ? array() : $form_state['storage']['access']['realms'],
       );
 
       _csa_asset_mediafile_set_access($values['mediafile_id'], $rights);
@@ -736,11 +786,11 @@ function _csa_asset_mediafile_set_access($mediafile_id, $options) {
   // Get ACL.
   $rights = _csa_asset_mediafile_get_acl($mediafile['mediafile_id'], $mediafile['owner_id']);
 
-  $options['aut_app'] = array();
+  $options['acl_app'] = array();
 
   foreach ($rights as $right) {
-    if (!empty($right['aut_app'])) {
-      $options['aut_app'][] = $right['aut_app'];
+    if (!empty($right['acl_app'])) {
+      $options['acl_app'][] = $right['acl_app'];
     }
   }
 

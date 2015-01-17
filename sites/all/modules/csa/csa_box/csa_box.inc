@@ -61,6 +61,8 @@ function _csa_box_check_type($type, $fatal = TRUE) {
  */
 function _csa_box_get_asset_listing($type, $options = array()) {
 
+  global $user;
+
   // Check the type.
   _csa_box_check_type($type);
 
@@ -90,13 +92,30 @@ function _csa_box_get_asset_listing($type, $options = array()) {
     'coll_id' => array(),
   );
 
+  $my_apps = array();
+  if (!empty($user->csa_access_rules['applications'])) {
+    $my_apps = array_keys($user->csa_access_rules['applications']);
+  }
+
   switch ($type) {
     case CSA_BOX_TYPE_UNPUBLISHED:
-      $options['cql'] = 'is_master_slaved = "FALSE"';
+      $cql = array();
+      $cql[] = 'is_master_slaved=FALSE';
+      if (!empty($my_apps)) {
+        $cql[] = '(is_master_slaved=TRUE AND NOT acl_app any "'  . implode(' ', $my_apps) . '")';
+      }
+
+      $options['cql'] = implode(' OR ', $cql);
       return _csa_asset_search($options);
 
     case CSA_BOX_TYPE_PUBLISHED:
-      $options['cql'] = 'is_master_slaved = "TRUE"';
+      $cql = array();
+      $cql[] = 'is_master_slaved=TRUE';
+      if (!empty($my_apps)) {
+        $cql[] = 'acl_app any "'  . implode(' ', $my_apps) . '"';
+      }
+
+      $options['cql'] = implode(' AND ', $cql);
       return _csa_asset_search($options);
 
     case CSA_BOX_TYPE_SEARCH:
@@ -123,11 +142,23 @@ function _csa_box_get_asset_listing($type, $options = array()) {
 
       switch ($values['search_published']) {
         case 1:
-          $cql[] = 'is_master_slaved = "TRUE"';
+          $cql_ms = array();
+          $cql_ms[] = 'is_master_slaved=TRUE';
+          if (!empty($my_apps)) {
+            $cql_ms[] = 'acl_app any "'  . implode(' ', $my_apps) . '"';
+          }
+
+          $cql[] = (empty($cql_ms) ? '' : '(') . implode(' AND ', $cql_ms) . (empty($cql_ms) ? '' : ')');
           break;
 
         case 2:
-          $cql[] = 'is_master_slaved = "FALSE"';
+          $cql_ms = array();
+          $cql_ms[] = 'is_master_slaved=FALSE';
+          if (!empty($my_apps)) {
+            $cql_ms[] = '(is_master_slaved=TRUE AND NOT acl_app any "'  . implode(' ', $my_apps) . '")';
+          }
+
+          $cql[] = (empty($cql_ms) ? '' : '(') . implode(' OR ', $cql_ms) . (empty($cql_ms) ? '' : ')');
           break;
       }
 
